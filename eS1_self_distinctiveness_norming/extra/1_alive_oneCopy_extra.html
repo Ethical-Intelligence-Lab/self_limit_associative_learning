@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
+    <script src="https://scorsese.wjh.harvard.edu/turk/tools/TimTurkToolsPlus.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.2/velocity.min.js'></script>
+    <link rel="stylesheet" type="text/css" href="css/experiment.css">
+    
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script>
+
+    var exp_name = "singleIdentity_e2_particles";
+    var version = "v1";
+    var cond = "cond1";
+    var cond_num = 1;
+    var cond_name = "alive_oneCopy";
+
+    $(document).ready(function(){
+
+          console.log(GetSubmitLocation());
+          workerId = gup('workerId');
+          console.log("worker id is_" + workerId);
+          assignmentId = gup('assignmentId');
+          console.log("assignment id exp is_" + assignmentId);
+
+          // Create data entry in sequel pro database
+          $.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/addSubjects.php?experimenter=jdf&experiment=" + exp_name + "_" + version + "_" + cond + "_" + cond_name + "&id=" + workerId, function( data ) {
+          });
+    });
+
+    //global variables
+    var startExperimentTime = [];
+    var displayTime = [];
+    var attention_mcq_a = '';
+    var identity_scaled_a = '';
+    var moral_scaled_a = '';
+    var comp_original_you_a = '';
+    var comp_number_copies = '';
+    var sex_a = '';
+    var age_a = '';
+    var language_a = '';
+
+    var trialStruct = [];
+    var comments = ''
+    var experimenter = 'jdf';
+    var experimentName = exp_name + "_" + version + "_" + cond; //name to save data on server with
+    var server = 'https://scorsese.wjh.harvard.edu';
+
+    function ShowTrial() {
+        $('#task').show();
+        ShowAttention();
+        $('#consentDiv').hide();
+    } 
+
+    //1
+    function ShowAttention() {
+        $('#attention_mcq').show();
+        $('#consentDiv').hide();
+
+        startExperimentTime = Date.now();
+        $( "#attention_mcq" ).on( "click", function() {
+        var qOne =  $("#attention_mcq input[type='radio']:checked");
+            if (qOne.length > 0) {
+                attention_mcq_a = qOne.val();
+                }
+        });
+    }
+
+    //2
+    function ShowIdentity() {
+
+        $('#attention_mcq').hide();
+        $('#identity_scaled').show();
+
+        $( "#identity_scaled" ).on( "click", function() {
+        var qTwo =  $("#identity_scaled input[type='radio']:checked");
+            if (qTwo.length > 0) {
+                identity_scaled_a = qTwo.val();
+            }
+        });
+    }
+
+    //3
+    function ShowMoral() {
+        $('#identity_scaled').hide();
+        $('#moral_scaled').show();
+
+        $( "#moral_scaled" ).on( "click", function() {
+        var qThree =  $("#moral_scaled input[type='radio']:checked");
+            if (qThree.length > 0) {
+                moral_scaled_a = qThree.val();
+            }
+        });
+    }
+
+    //4
+    function ShowComprehension() {
+        $('#moral_scaled').hide();
+        $('#comprehension_mcq').show();
+
+        $( "#original_you" ).on( "click", function() {
+        var qFour =  $("#original_you input[type='radio']:checked");
+            if (qFour.length > 0) {
+                comp_original_you_a = qFour.val();
+            }
+        });
+
+        $( "#number_copies" ).on( "click", function() {
+        var qFive =  $("#number_copies input[type='radio']:checked");
+            if (qFive.length > 0) {
+                comp_number_copies_a = qFive.val();
+            }
+        });
+    }
+
+    //5
+    function ShowDemographics() {
+        $('#comprehension_mcq').hide();
+        $('#demographics_mcq').show();
+
+        $( "#sex_mcq" ).on( "click", function() {
+        var qSix =  $("#sex_mcq input[type='radio']:checked");
+            if (qSix.length > 0) {
+                sex_a = qSix.val();
+            }
+        });   
+        
+        $( "#language_mcq" ).on( "click", function() {
+        var qSeven =  $("#language_mcq input[type='radio']:checked");
+            if (qSeven.length > 0) {
+                language_a = qSeven.val();
+            }
+        });                        
+    }
+
+    //6
+    function ShowEdu() {
+        $('#demographics_mcq').hide();
+        $('#science_edu_mcq').show();
+
+
+    }
+
+    //7
+    function ShowCommentBox() {
+        $('#science_edu_mcq').hide();
+        $('#commentBox').show();
+    }
+
+    /* Save the data to the server (choose what to save): */
+    function SaveData() {
+        /* Now lets push it all into the trialStruct: */
+        trialStruct.push({
+            'cond': cond_num,
+            'cond_name' : cond_name,
+
+            'attention_mcq' : attention_mcq_a,
+            'identity_scaled': idenity_scaled_a,
+            'moral_mcq': moral_mcq_a,
+
+            'description' : $('#descrip').val(),
+            'comprehension': comp_a,
+            'doneBefore': doneBef_a,
+
+            'sex': sex_a,
+            "age": $('#age').val(),
+            "comments": $('#comm').val(), // their comments
+            'displayTime': displayTime
+        });
+
+        /* Hide everything in the 'done' div, and replace it with 'saving...': */
+        $('#commentBox').children().hide();
+        $('#saving').show();
+
+        /* Set the assignment ID hidden input to the Turk assignment ID (required by Turk): */
+        $('#assignmentId').val(GetAssignmentId());
+        console.log($('#assignmentId').val());
+
+    /* if there's an assignment id, enable the submit button */
+        if ($('#assignmentId').val() != "NONE" && $('#assignmentId').val() != "ASSIGNMENT_ID_NOT_AVAILABLE") {
+            console.log("no assignment id");
+        // $("#customSubmit").attr('disabled',false);
+        }
+
+        /* set the submit location to either "actual mturk" or "sandbox" */
+        $("#turkSubmit").attr('action' , GetSubmitLocation() );
+        console.log($("#turkSubmit").attr('action'));
+
+        /* How long did they take to do the HIT, inclusive of reading instructions, etc? */
+        var newDate = new Date();
+        var totalTime = newDate - startExperimentTime;
+
+        /* Get the assignment ID: */
+        var curID = (IsOnTurk())? GetAssignmentId() : prompt("Doesn't look like you " +
+        "are on Turk, so you're probably testing. Enter an ID to save your data with:", "id");
+
+        /* What things to save: */
+        d = {
+        "curID": curID, //assignmentID
+        "workerID": workerId, //workerID
+        "curTime": newDate.today() + " @ " + newDate.timeNow(), //submission time
+        "userAgent": navigator.userAgent, //browser and version
+        "windowWidth": $(window).width(), //size of window HIT was completed in
+        "windowHeight": $(window).height(),
+        "screenWidth": screen.width, //size of their monitor
+        "screenHeight": screen.height,
+        "totalTime": totalTime, // time it took to complete the HIT
+        "trialStruct": trialStruct //the trialStruct with all the data and conditions
+        };
+
+        $.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/addSubjects.php?experimenter=jdf&experiment=" + exp_name + "_" + version + "_" + cond + "_" + cond_name + "&id=" + workerId, function( data ) {
+        });
+
+        SendToServer(curID, d);
+    }
+
+        /* Send the data to the server as JSON: */
+        function SendToServer(id, curData) {
+          var dataToServer = {
+            'id': workerId + "_" + exp_name + "_" + cond + "_" + cond_name + "_" + version + "_" + assignmentId, //filename to save the data with
+            'workerId' : workerId,
+            'experimenter': experimenter, // experimenter folder to save it in
+            'experimentName': experimentName, //directory to save it in
+            'curData': JSON.stringify(curData) // data to save
+          };
+
+           //Post the data to the server, using https:// or it will fail if run
+           //from within Turk:
+          $.post(server + "/turk/tools/save.php",
+            dataToServer,
+            // Whether the data gets saved or not, submit the form to Turk:
+            function(data) {
+                document.forms[0].submit();
+            }
+          ).fail(function(data) {
+                document.forms[0].submit();
+          });
+
+        }
+
+        function gup( name )
+        {
+          name = name.replace(/[\[]/,"\[").replace(/[\]]/,"\]");
+          var regexS = "[\?&]"+name+"=([^&#]*)";
+          var regex = new RegExp( regexS );
+          var param = regex.exec( window.location.href );
+          if( param == null )
+            return "";
+          else
+            return param[1];
+        }
+
+        function GetAssignmentId() {
+          var assignmentId = turkGetParam( 'assignmentId', 'NONE' );
+          return assignmentId;
+        }
+
+    </script>
+
+  </head>
+
+  <body>
+
+    <!-- NOTE: you can't submit the hit without a textarea! But id can be hidden... -->
+    <textarea name="comments" id="comments" style="display: none; width: 300px; height: 200px"></textarea>
+    <button id="customSubmit" type="button" class="btn btn-default" disabled="true" onclick="Start();">Submit</button>
+
+    <!-- Wrap the entire experiment in a form. Always start the form with a hidden input for theTurk assignment ID that we'll fill in with their real assignment ID in Javascript -->
+    <!-- <form id="turkSubmit" action="https://www.mturk.com/mturk/externalSubmit" method="post" autocomplete="off"> -->
+    <form id="turkSubmit" action="" method="post" autocomplete="off">
+    <input type="hidden" name="assignmentId" id="assignmentId" value="">
+    <input type="submit" value="Submit" name="submitButton" id="submitButton" style="display: none">
+
+    <div id='consentDiv'>
+          <p><b><u>Participation is voluntary</b></u><br>
+          It is your choice whether or not to participate in this research.  If you choose to participate, you may change your mind and leave the study at any time.  Refusal to participate or stopping your participation will involve no penalty or loss of benefits to which you are otherwise entitled.<br><br>
+
+          <b><u>What is the purpose of this research?</b></u><br>
+          The purpose of this research is to examine human visual performance and judgments. All data from this experiment are gathered for scientific purposes and will contribute to our eventual understanding of brain and visual function. These data may be published in scientific journals so that other researchers may have access to these data.<br><br>
+
+          <b><u>How long will I take part in this research?</b></u><br>
+          Your participation will take approximately 5 minutes to complete.<br><br>
+
+          <b><u>What can I expect if I take part in this research?</b></u><br>
+          As a participant, you will be asked to look at images presented on a video display and give responses with key presses or movements of a mouse pointing device. Your response may involve responding as quickly as you can, memorizing what you saw, making a judgment, or completing a questionnaire. You will also be asked to complete a demographics form.<br><br>
+
+          <b><u>What are the risks and possible discomforts?</b></u><br>
+          If you choose to participate, the effects should be comparable to those you would experience from viewing a computer monitor for 5 minutes and using a mouse or keyboard, e.g., eye fatigue. You are free to take breaks throughout the session. Some of the images and stories are mildly emotion, and some of the written stories are disgust-inducing.</br></br>
+
+          <b><u>Will I be compensated for participating in this research?</b></u><br>
+          You will not be compensated for this study<br><br>
+
+          <b><u>If I take part in this research, how will my privacy be protected? What happens to the information you collect?</b></u><br>
+          Your participation in this experiment will remain confidential, and your identity will not be stored with your data.<br><br>
+
+          <b><u>If I have any questions, concerns or complaints about this research study, who can I talk to?</b></u><br>
+          The researcher for this study is Julian De Freitas who can be reached at 626.559.6401; #700, 33 Kirkland St, Cambridge MA, 02138; defreitas@g.harvard.edu. The faculty sponsor is George A. Alvarez who can be reached at alvarez@wjh.harvard.edu.<br>
+          -	If you have questions, concerns, or complaints,<br>
+          -	If you would like to talk to the research team,<br>
+          -	If you think the research has harmed you, or<br>
+          -	If you wish to withdraw from the study.<br><br>
+
+          <b><u>This research has been reviewed by the Committee on the Use of Human Subjects in Research at Harvard University.  They can be reached at 617-496-2847, 1414 Massachusetts Avenue, Second Floor, Cambridge, MA 02138, or cuhs@fas.harvard.edu for any of the following:</b></u><br>
+          -	If your questions, concerns, or complaints are not being answered by the research team,<br>
+          -	If you cannot reach the research team,<br>
+          -	If you want to talk to someone besides the research team, or<br>
+          -	If you have questions about your rights as a research participant.</p>
+
+            <p><input id = "startButton" class="btn btn-success" valign="center" type="button" value="Proceed" /></p>
+            <script>
+                $( "#startButton" ).on( "click", function() {
+                    ShowTrial();
+                });
+            </script>
+
+    </div>
+
+    <div id="attention_mcq" class = "mcq_question" align= "center">
+            <br>
+            <p><b> 1. How many <u>fatal</u> heart attacks have you had? </b></p>
+                <input type="radio" name="comp" value="0" /> 0 <br />
+                <input type="radio" name="comp" value="1" /> 1 <br />
+                <input type="radio" name="comp" value="2" /> 2 <br />
+                <input type="radio" name="comp" value="3" /> 3 <br />
+                <input type="radio" name="comp" value="4" /> 4 <br />
+                <input type="radio" name="comp" value="5" /> 5 <br /><br>
+
+            <p><input id = "attentionButton" class="btn btn-primary" valign="center" type="button" value="Proceed"  /></p>
+            <script>
+                $( "#attentionButton" ).on( "click", function() {
+                var checkOne =  $("#attention_mcq input[type='radio']:checked");
+                        if (checkOne.length > 0) {
+                            ShowIdentity();
+                        }
+                        else if (checkOne.length <= 0) {
+                        alert("Please answer all the questions.");
+                        }
+                });
+            </script>
+            </p>
+    </div>
+
+    <div id="identity_scaled" class = "scaled_question" align= "center">
+            <p>Imagine you are living in a future where scientists have figured out how to make a perfect copy of the human body and brain of a person at a given point in his or her life. </p>
+
+            <p>You are invited into a laboratory. A molecule of you is duplicated and then transported to a location at one corner of the room. The original molecule is not affected in any way. Then, another molecule is transported, and then another, until all molecules are duplicated and transported to the new location. Once the process is completed, the molecules are reassembled in exactly the way they were before. </p>
+
+            <p><b> 2. How likely is it that the individual in the corner is you? </b></p>
+            <p>
+            <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                <tbody>
+                    <tr>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="1" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="2" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="3" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="4" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="5" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="6" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="7" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="8" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="9" /></td>
+                    </tr>
+                    <tr>
+                        <td valign="top" align="center">1</td>
+                        <td valign="top" align="center">2</td>
+                        <td valign="top" align="center">3</td>
+                        <td valign="top" align="center">4</td>
+                        <td valign="top" align="center">5</td>
+                        <td valign="top" align="center">6</td>
+                        <td valign="top" align="center">7</td>
+                        <td valign="top" align="center">8</td>
+                        <td valign="top" align="center">9</td>
+                    </tr>
+                    <tr>
+                    <td valign="center" align="left" colspan="3">Definitely</br>unlikely</td>
+                    <td valign="center" align="right" colspan="10">Definitely</br>likely</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <br><p><input id = "identityButton" class="btn btn-primary" valign="center" type="button" value="Proceed"  /></p>
+            <script>
+                $( "#identityButton" ).on( "click", function() {
+                var checkTwo = $("#identity_scaled input[type='radio']:checked");
+                        if (checkTwo.length > 0) {
+                            ShowMoral();
+                        }
+                        else if (checkTwo.length <= 0) {
+                        alert("Please answer all the questions.");
+                        }
+                });
+            </script>
+            </p>
+    </div>
+
+    <div id="moral_scaled" class = "scaled_question" align= "center">
+            <p>Imagine you are living in a future where scientists have figured out how to make a perfect copy of the human body and brain of a person at a given point in his or her life. </p>
+
+            <p>You are invited into a laboratory. A molecule of you is duplicated and then transported to a location at one corner of the room. The original molecule is not affected in any way. Then, another molecule is transported, and then another, until all molecules are duplicated and transported to the new location. Once the process is completed, the molecules are reassembled in exactly the way they were before. </p>
+            
+            <p><b> 3. The scientists have decided to terminate the individual in the corner. How ok is it for them to do that? </b></p>
+            <p>
+            <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                <tbody>
+                    <tr>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="1" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="2" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="3" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="4" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="5" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="6" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="7" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="8" /></td>
+                        <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="9" /></td>
+                    </tr>
+                    <tr>
+                        <td valign="top" align="center">1</td>
+                        <td valign="top" align="center">2</td>
+                        <td valign="top" align="center">3</td>
+                        <td valign="top" align="center">4</td>
+                        <td valign="top" align="center">5</td>
+                        <td valign="top" align="center">6</td>
+                        <td valign="top" align="center">7</td>
+                        <td valign="top" align="center">8</td>
+                        <td valign="top" align="center">9</td>
+                    </tr>
+                    <tr>
+                    <td valign="center" align="left" colspan="3">Definitely</br>not ok</td>
+                    <td valign="center" align="right" colspan="10">Definitely</br>ok</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p><input id = "moralButton" valign="center" type="button" value="Proceed"  /></p>
+            <script>
+                $( "#moralButton" ).on( "click", function() {
+                var checkThree = $("#moral_scaled input[type='radio']:checked");
+                        if (checkThree.length > 0) {
+                            ShowComprehension();
+                        }
+                        else if (checkThree.length <= 0) {
+                        alert("Please answer all the questions.");
+                        }
+                });
+            </script>
+            </p>
+    </div>
+
+    <div id="comprehension_mcq" class="scaled_question">
+
+        <div id="original_you">
+            <p><b> 4. According to the story, which of the following is true about the original you? </b></p>
+            <input type="radio" name="original_you" value="1" /> The original remains alive <br />
+            <input type="radio" name="original_you" value="2" /> The scientists kill the original you <br />
+            <input type="radio" name="original_you" value="3" /> The original you runs away <br />
+        </div>
+
+        <div id="number_copies">
+            <p><b> 5. According to the story, how many copies of the original you are made? </b></p>
+            <input type="radio" name="num_copies" value="1" /> No copies <br />
+            <input type="radio" name="num_copies" value="2" /> One copy <br />
+            <input type="radio" name="num_copies" value="3" /> Two copies <br />
+        </div>
+
+        <p><input id = "compButton" valign="center" type="button" value="Proceed"  /></p>
+        <script>
+            $( "#compButton" ).on( "click", function() {
+            var checkFour =  $("#original_you input[type='radio']:checked");
+            var checkFive = $("#number_copies input[type='radio']:checked");
+                    if (checkFour.length > 0 && checkFive.length > 0) {
+                        ShowDemographics();
+                    }
+                    else {
+                    alert("Please answer all the questions.");
+                    }
+            });
+        </script>
+
+    </div>
+
+    <div id="demographics_mcq" class = "scaled_question">
+
+        <div id="age_textbox">
+                <p>
+                    <table width="410" cellspacing="1" cellpadding="20" border="0" bgcolor="#DDDDDD" align="center">
+                        <tbody>
+                            <tr>
+                                <td>
+                                <p><b> 6. What is your age? </b></p>
+                                <p><input type="text" size="12" name="age" id="ss_age" /></p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </p>
+        </div>
+
+        <div id="sex_mcq">
+            <p>
+                <table width="410" cellspacing="1" cellpadding="20" border="0" bgcolor="#DDDDDD" align="center">
+                    <tbody>
+                        <tr>
+                            <td>
+                            <p><b> 7. What is your gender? </b></p>
+                            <input type="radio" name="sex" value="Male" /> Male <br />
+                            <input type="radio" name="sex" value="Female" /> Female
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </p>
+        </div>
+
+        <div id="language_mcq">
+            <p>
+                <table width="410" cellspacing="1" cellpadding="20" border="0" bgcolor="#DDDDDD" align="center">
+                    <tbody>
+                        <tr>
+                            <td>
+                             <p><b> 8. What is your native language? </b></p>
+                            <input type="radio" name="language" value="English" /> English <br />
+                            <input type="radio" name="language" value="Spanish" /> Spanish <br />
+                            <input type="radio" name="language" value="Chinese" /> Chinese <br />
+                            <input type="radio" name="language" value="Other" /> Other <br />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </p>
+        </div>
+
+        <p><input id = "demoButton" valign="center" type="button" value="Proceed"  /></p>
+        <script>
+            $( "#demoButton" ).on( "click", function() {
+            var checkSeven =  $("#sex_mcq input[type='radio']:checked");
+            var checkEight = $("#language_mcq input[type='radio']:checked");
+                    if (checkSeven.length > 0 && checkEight.length > 0) {
+                        ShowEdu();
+                    }
+                    else {
+                        alert("Please answer all the questions.");
+                    }
+            });
+        </script>
+
+    </div>
+
+    <div id='edu_scaled' class="scaled_question" >
+            <div id="science_scaled" >
+                    <p><b> 9. How much science education have you received? </b></p>
+                    <p>
+                    <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                        <tbody>
+                            <tr>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="1" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="2" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="3" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="4" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="5" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="6" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="7" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="8" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="9" /></td>
+                            </tr>
+                            <tr>
+                                <td valign="top" align="center">1</td>
+                                <td valign="top" align="center">2</td>
+                                <td valign="top" align="center">3</td>
+                                <td valign="top" align="center">4</td>
+                                <td valign="top" align="center">5</td>
+                                <td valign="top" align="center">6</td>
+                                <td valign="top" align="center">7</td>
+                                <td valign="top" align="center">8</td>
+                                <td valign="top" align="center">9</td>
+                            </tr>
+                            <tr>
+                            <td valign="center" align="left" colspan="3">None</br>at all</td>
+                            <td valign="center" align="right" colspan="10">A very</br>large amount</td>
+                            </tr>
+                        </tbody>
+                    </table>
+            </div>
+
+            <div id="philosophy_scaled" >
+                    <p><b> 10. How much philosophy education have you received? </b></p>
+                    <p>
+                    <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                        <tbody>
+                            <tr>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="1" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="2" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="3" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="4" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="5" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="6" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="7" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="8" /></td>
+                                <td width="10%" align="center"><input type="radio" name="01.ratelexical" value="9" /></td>
+                            </tr>
+                            <tr>
+                                <td valign="top" align="center">1</td>
+                                <td valign="top" align="center">2</td>
+                                <td valign="top" align="center">3</td>
+                                <td valign="top" align="center">4</td>
+                                <td valign="top" align="center">5</td>
+                                <td valign="top" align="center">6</td>
+                                <td valign="top" align="center">7</td>
+                                <td valign="top" align="center">8</td>
+                                <td valign="top" align="center">9</td>
+                            </tr>
+                            <tr>
+                            <td valign="center" align="left" colspan="3">None</br>at all</td>
+                            <td valign="center" align="right" colspan="10">A very</br>large amount</td>
+                            </tr>
+                        </tbody>
+                    </table>                
+            </div>
+
+            <p><input id = "eduButton" valign="center" type="button" value="Proceed"  /></p>
+            <script>
+                    $( "#eduButton" ).on( "click", function() {
+                    var checkNine =  $("#science_scaled input[type='radio']:checked");
+                    var checkTen = $("#philosophy_scaled input[type='radio']:checked");
+                            if (checkNine.length > 0 && checkTen.length > 0) {
+                                ShowCommentBox();
+                            }
+                            else {
+                            alert("Please answer all the questions.");
+                            }
+                    });
+            </script>
+    </div>
+
+        <!-- Standard post-experiment comment box (initially hidden): -->
+        <div id="commentBox">
+            <div id="doneText">Done! Thanks!<br><br>Any comments for us? (Was it fun? Any technical difficulties?)<br><br><textarea name="comments" id="comm" style="width: 300px; height: 200px"></textarea><br><br>
+            <a href="javascript:SaveData()" id="timSubmit">Submit</a>
+            </div><div id="saving">Saving . . .</div>
+        </div>
+
+  </body>
+
+<html>

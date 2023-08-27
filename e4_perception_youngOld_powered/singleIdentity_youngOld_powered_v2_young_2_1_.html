@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<!--Julian De Freitas, 2019-->
+<html>
+
+<head>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
+  <script src="https://scorsese.wjh.harvard.edu/turk/tools/TimTurkToolsPlus.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.2/velocity.min.js'></script>
+  <script src="js/sweetalert.min.js"></script>
+  <script src="js/tonePlayer.js"></script>
+  <script src="js/sweetalert-master/dist/sweetalert.min.js"></script>
+  <script src="js/dot/doT.js"></script>
+  <link rel="stylesheet" type="text/css" href="js/sweetalert-master/dist/sweetalert.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="css/experiment.css">
+  <script src="js/dot/doT.js"></script>
+	<script>
+
+    /* ********************************************************************************* */
+                                      /* DEFINE VARIABLES */
+    /* ********************************************************************************* */
+
+    //experiment variables
+    var btwn_cond = 2; //modify this across subjects (THERE WILL NEED TO BE 6 DIFFERENT SCRIPTS)
+    var condNum = 1;
+    var condName = 'young_2';
+    var perm_array = [['s','t','c'], //original, copy, stranger
+                      ['s','c','t'],
+                      ['c','t','s'],
+                      ['c','s','t'],
+                      ['t','c','s'],
+                      ['t','s','c']]
+    var experimenter = 'jdf';
+    var workerId = '';
+    var assignmentId = '';
+    var version = 'v2';
+    var expName = 'singleIdentity_youngOld_powered';
+    var experimentName = expName + "_" + condName + "_" + condNum + "_" + version; //name to save data on server with
+    var server = 'https://scorsese.wjh.harvard.edu';
+    var instructions = "";
+    var shapeArray = perm_array[btwn_cond];
+    var labelArray = ['young-you', 'stranger-john', 'stranger-bill']; //saved in data file
+    var learnCorrAns = ['2', '1', '3']; //presented in experiment
+    var learnOptions = "<p>1 = Stranger-John</p><p>3 = Stranger-Bill</p><p>2 = Young-You</p><br>"
+
+    var num_learn_trials = 27; //27********!!!!!!!!!!!!!!!!!!!!
+    var num_blocks = 5; //5
+    var num_repetitions = 5; //5
+    var num_prac_trials = 18; //18
+
+    var num_exp_trials = num_blocks * num_repetitions * (shapeArray.length*labelArray.length + 3);  //3*3 conditions + 3 matching trials, so tha there are 6 matching and non-matching trials
+    var learn_score = 0;
+    var prac_score = 0;
+    var learn_score_target = Math.ceil(num_learn_trials*0.75); //how well they need to do to pass learning
+    var prac_score_target = Math.ceil(num_prac_trials/2); //how well they need to do to pass practice trials
+    var cur_total_trials = num_prac_trials;
+    var trialStruct = new Array();
+    var trials_per_block = num_exp_trials/num_blocks; 
+
+    //time variables (in ms) (ideally should be multiple of standard screen refresh, i.e. 60 Hz, or 16.66 ms):
+	  var learnDuration = 0;
+    var fixationDuration = 500; 
+    var imageDuration = 90; 
+    var resultCollectDuration = 900; 
+    var showResultDuration = 500;
+    var interFixDuration = 100;
+
+	  //these will store stim durations relative to the current refresh rate calculation
+	  var resultCollectDurationFPS = resultCollectDuration;
+	  var fixationDurationFPS = fixationDuration;
+	  var imageDurationFPS = imageDuration;
+    var showResultDurationFPS = showResultDuration;
+    var interFixDurationFPS = interFixDuration;
+
+    //variables for calculating refresh rate
+	  var filterForFPS = 10; // the number of refreshes to filter over for fps calculation (i.e. low pass filter)
+	  var fps = 60.00; // default refresh rate
+	  var t = []; // array to store the refresh timestamps
+	  var lastFPS = fps;
+	  var prevTime = 0;
+
+	  //whether stim have not yet been displayed (0), are on screen (1), or are complete for the trial (-1)
+	  var stateFixation = 0;
+	  var stateImage = 0;
+    var stateResultCollect = 0;
+    var stateResult = 0;
+
+    //other variables
+    var yesKey = 110;
+    var noKey = 109;
+    var oneKey = 49;
+    var twoKey = 50;
+    var threeKey = 51;
+    var startExperimentTime = new Date(); //time page was loaded
+    var numTrials = 108;
+    var curTrial = 0; //current trial, 0-indexed
+	  var attentionMCQval = 0; // attention variables
+    var identity_before_a = '';
+    var identity_after_a = '';
+    var comp_original_you_a = '';
+    var comp_number_copies_a = '';
+	  var comp_a = ""; //demographics variables
+    var sex_a = "";
+    var trialNumbers = [];
+    var totalTime = [];
+
+    //pull and save turk and assignment ids
+    $(document).ready(function(){
+        console.log(GetSubmitLocation());
+        workerId = gup('workerId');
+        console.log("worker id is_" + workerId);
+        assignmentId = gup('assignmentId');
+        console.log("assignment id exp is_" + assignmentId);
+
+        // Create data entry in sequel pro database
+        $.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/addSubjects.php?experimenter=jdf&experiment=" + expName + "_" + version + "_" + condName + "_" + condNum + "_" + "&id=" + workerId, function( data ) {
+        });
+    });
+
+    /* ********************************************************************************* */
+                                      /* GENERATE TRIAL STRUCT */
+    /* ********************************************************************************* */
+
+    //these only get set within showLearnInstruction, since we first need to get the best friend's name
+    var genStruct = '';
+    var expStruct = '';
+    var learnStruct = '';
+    var practiceStruct = '';
+
+    function GenerateTrials(reps, blocks) {
+      image_loc = "images/";  
+
+      //first create the expStruct, with an object for each trial
+      var expStruct = new Array();
+      for (var i = 0; i < num_exp_trials; i++)
+          expStruct.push(new Object());
+
+      //loop through each condition type, to fill exp struct
+      //we need an equal number of matching and non-matching trials
+      var loopIndex = 0;      
+      for(i=0; i < reps*num_blocks; i++) { 
+        for(q=0; q < 2; q++) { //half the trials are matching/non-matching
+          for(j=0; j < shapeArray.length; j++) {
+            for(k=0; k < labelArray.length; k++) {
+                if(q==0 || (q==1 & (labelArray[shapeArray.indexOf(shapeArray[j])] == labelArray[k])) ) { //for the second half of trials, only do matching
+                    expStruct[loopIndex]['curTrial'] = loopIndex
+                    expStruct[loopIndex]['expName'] = expName
+                    expStruct[loopIndex]['shape'] = shapeArray[j]
+                    expStruct[loopIndex]['label'] = labelArray[k]
+                    expStruct[loopIndex]['image'] = shapeArray[j] + ".png"
+                    expStruct[loopIndex]['imageDurationIntended'] = imageDuration
+                    expStruct[loopIndex]['agentCond'] = labelArray[shapeArray.indexOf(shapeArray[j])] //the agent cond is defined by whose shape we are currently seeing, regardless of what the label is. 
+
+                    //mark whether the current label matches the shape it was designated to
+                    if(labelArray[shapeArray.indexOf(shapeArray[j])] == labelArray[k]) { //if the name of the current shape is the same as that of the current label, e.g., if the label is you and the shape stands for you
+                       expStruct[loopIndex]['matchCond'] = 'matching' 
+                    }
+                    else {
+                       expStruct[loopIndex]['matchCond'] = 'nonmatching'
+                    }
+                   //If the current label matches the shape it was designated to, then the correct answer is 'y', else it's 'n'
+                   if(expStruct[loopIndex]['label'] == expStruct[loopIndex]['agentCond']) {
+                       expStruct[loopIndex]['corrAns'] = 'y'
+                   }
+                   else {
+                       expStruct[loopIndex]['corrAns'] = 'n'
+                   }
+
+                   //following get filled based on subject's response:
+                   expStruct[loopIndex]['ans'] = "NA" 
+                   expStruct[loopIndex]['rt'] = "NA"
+                   expStruct[loopIndex]['acc'] = "NA"
+                   expStruct[loopIndex]['fixationDuration'] = "NA"
+                   expStruct[loopIndex]['imageDuration'] = "NA"
+                   expStruct[loopIndex]['resultCollectDuration'] = "NA"
+                   expStruct[loopIndex]['showResultDuration'] = "NA"
+                   expStruct[loopIndex]['fpsTrial'] = "NA"
+
+                   loopIndex++;
+                }
+              }
+             }
+           }
+         } 	  
+         return expStruct
+       }
+
+      $(window).load(function() { //window.load loads all divs into buffer (see https://perishablepress.com/a-way-to-preload-images-without-javascript-that-is-so-much-better/)
+         $('#consentDiv').show();
+      });
+
+    /* ********************************************************************************* */
+                                      /* EXPERIMENT LOGIC */
+    /* ********************************************************************************* */
+
+    //1
+    function ShowAttention() {
+      $('#attentionCheck').show();
+      $('#consentDiv').hide();
+
+      $( "#attention_mcq" ).on( "click", function() {
+        var selectedAtt = $("#attention_mcq input[type='radio']:checked");
+        if (selectedAtt.length > 0) {
+          attentionMCQval = selectedAtt.val();
+        };
+      });
+
+      MakeInstruction(); 
+      //update all instructions with subject's best friend's name
+      document.getElementById('generalInstruction1').innerHTML = instructions;
+      document.getElementById('generalInstruction2').innerHTML = instructions;
+      document.getElementById('generalInstruction3').innerHTML = instructions;
+      document.getElementById('generalInstruction4').innerHTML = instructions;
+      document.getElementById('learnLabel').innerHTML = learnOptions;
+
+    } 
+
+    //2 - Show learning instruction
+    function ShowLearnInstruction() {
+      $('#attentionCheck').hide();
+      //$('#comprehension_mcq').hide();
+
+      //generate trials
+      genStruct = GenerateTrials(1,1);
+      expStruct = (GenerateTrials(num_repetitions, num_blocks)); // the list of trials to show
+      learnStruct = Object.entries(genStruct).slice(0,num_learn_trials).map(entry => entry[1]);
+      practiceStruct = Object.entries(genStruct).slice(0,num_prac_trials).map(entry => entry[1]);
+      //if there's no workerId, I'm probably testing, so give me a random workerId
+      if(workerId == "") {
+        workerId = Math.round(Math.random()*10000000000); 
+      }
+
+      $('#learnInstruction').show(); 
+    }
+
+    //3 - Show learning trial
+    function ShowLearn() {
+      $('#learnInstruction').hide();
+
+      //set parameters for practice trial
+      cur_total_trials = num_learn_trials;
+      trialStruct = Shuffle(learnStruct);
+      trialType = 'learn'; 
+
+      $('.trial_counter').show();
+      ShowTrial();
+    }
+
+    //4 - Show practice instruction
+    function ShowPracInstruction() {
+        $('#task').hide();
+        $('#attentionCheck').hide(); //hiding it again, in case we want to skip learning during testing
+        $('.trial_counter').hide();
+
+        $('#pracInstruction').show();
+    }
+
+    //5
+    function ShowPractice() {
+        $('#pracInstruction').hide();
+        $('#pracRepeatInstruction').hide();
+        cur_total_trials = num_prac_trials;
+
+        cur_total_trials = num_prac_trials;
+        trialStruct = Shuffle(practiceStruct);
+        trialType = 'practice';
+        $('.trial_counter').show();
+        ShowTrial();
+    }
+
+    //5 - Only gets called if they didn't get enough practice trials correct
+    function ShowPracRepeatInstruction() {
+        $('#task').hide();
+        $('.trial_counter').hide();
+
+        $('#pracRepeatInstruction').show();
+    }
+
+    //7 - Show experiment instruction
+    function ShowExpInstruction() {
+        $('#task').hide();
+        $('.trial_counter').hide();
+
+        $('#expInstruction').show();
+    }
+
+    //8 - Show experiment trials
+    function ShowExperiment() {
+        $('#expInstruction').hide();
+
+        cur_total_trials = num_exp_trials;
+        trialStruct = Shuffle(expStruct);
+        trialType = 'experiment';
+        $('.trial_counter').show();
+        ShowTrial();
+    }
+
+    //9 - Show demographics questions
+    function ShowDemographics() {
+      totalTime = new Date() - startExperimentTime;
+      $('.trial_counter').hide();
+      $('#task').hide();
+
+      $('#demographics').show();
+
+      $( "#comprehension" ).on( "click", function() {
+            var selectedComp = $("#comprehension input[type='radio']:checked");
+            if (selectedComp.length > 0) {
+              comp_a = selectedComp.val();
+            };
+          });
+
+      $( "#sexAge" ).on( "click", function() {
+            var selectedSA = $("#sexAge input[type='radio']:checked");
+            if (selectedSA.length > 0) {
+              sex_a = selectedSA.val();
+            };
+          });
+    }
+
+    /* ********************************************************************************* */
+                                      /* HELPER FUNCTIONS */
+    /* ********************************************************************************* */
+
+    //instruction template
+    function MakeInstruction() {
+        var you_template_fn = doT.template("<p>The following shape represents the younger you 20 years ago:</p> <div> <img class='instruction_shapes' src = 'images/{{=it[0]}}.png'> </div><br>");
+        var friend_template_fn = doT.template("<p>The following shape represents john, a stranger:</p> <div> <img class='instruction_shapes' src = 'images/{{=it[1]}}.png'> </div><br>");
+        var stranger_template_fn = doT.template("<p>The following shape represents bill, a stranger:</p> <div> <img class='instruction_shapes' src = 'images/{{=it[2]}}.png'> </div><br>");
+        var you_instruction = you_template_fn(perm_array[btwn_cond]);
+        var friend_instruction = friend_template_fn(perm_array[btwn_cond]);
+        var stranger_instruction = stranger_template_fn(perm_array[btwn_cond]);
+        var general_instruction = "Your task is to identify which shape represents young-you, john, or bill."
+
+        instructions = Shuffle([you_instruction, friend_instruction, stranger_instruction]);
+        instructions.push(general_instruction);
+    }
+
+    function currentTime() {
+        return performance.now();
+    }
+
+    //generic function for showing trials
+    function ShowTrial() {
+
+        //switch out stimuli for the new trial
+        document.getElementById("instruction_2").innerHTML = ("Image #" + (curTrial+1) + " out of " + cur_total_trials + ":"); //keep running tally of trials
+        document.getElementById("label").innerHTML = (trialStruct[curTrial]['label']); //change label displayed under shape
+        document.getElementById("resultMessage").innerHTML = ('Too slow!'); //by default, say that they were too late; if they respond in time, then this message will change
+        document.getElementById("resultMessage").style.color = "#ffff00"; //default message color if they're too slow; this gets changed if they respond in time 
+        $('.target').attr("src", image_loc.concat(trialStruct[curTrial].image) ); //change shape
+
+        //hide previously shown elements
+        $('#block_break').hide();
+        $('#learnInstruction').hide();
+        $('#pracInstruction').hide();
+        $('#expInstruction').hide();
+        $('#learnLabel').hide();
+
+        //show current elements
+        $('#task').show();
+        $('#fixation').show();
+        $('#firstVisual').show();
+        $('#dv_scaled').show();
+
+        // set the function for animation depending on the browser
+        // we use one of these further down below
+        if (!window.requestAnimationFrame) {
+          window.requestAnimationFrame =
+          window.mozRequestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          window.msRequestAnimationFrame;
+        }
+
+        //this function is called by window.requestAnimationFrame (see below) after every trial 
+        //it continually gets a fresh estimate of the fps, and ifi and then shows stimuli using
+        //these estimates (notice how the animate function is not closed)
+        //all of this happens before the screen is repainted
+        
+        //this function calculates fps by collecting a bunch of timestamps, then calculating how many you were 
+        //able to collect (t.length) within a certain time period (now-t0, where t0 is the value of the last timestamp you collected)
+        //Multiply that value by 1000, since the timestamps are in milliseconds
+        //Also calculate the interframe interval
+        function animate(now) {
+
+          if ( now > prevTime ) { // so we don't duplicate the values in t, if we have not yet received a new frame
+              t.unshift(now); //add new time to the 't' array
+            prevTime = now;
+
+            //gets the oldest timestamp in the running list of timestamps
+            if (t.length > filterForFPS) { //just making sure that the list of timestamps is recent (last 10 requests)
+              var t0 = t.pop();
+            } else {
+              var t0 = t[t.length-1];
+            };
+
+            //once you have more than just one timestamp, calculate the fps
+            if ( t.length > 1 ) { // get an estimate to use throughout, even if [t] is not filled yet
+              // fps = Math.floor(1000 * t.length / (now - t0));
+              fps = 1000 * t.length / (now - t0);
+            } else {
+              fps = lastFPS; // if only one estimate so far, use the last fps (or in the case of the first trial, whatever the default refresh rate)
+            };
+          };
+
+          ifi = 1000/fps; // interframe interval
+
+          //*****SHOW FIXATION*******
+          if (stateFixation === 0) { 
+              startTimeFixation = currentTime();
+              stateFixation = 1;
+              fixationDurationFPS = ( fixationDuration*fps/1000 )*ifi - 0.5*ifi;
+          } else if (stateFixation === 1 && (currentTime() - startTimeFixation) > fixationDurationFPS ) {
+              endTimeFixation = currentTime();
+              trialStruct[curTrial].fixationDuration = endTimeFixation - startTimeFixation;
+              stateFixation = -1; 
+          };
+
+          //*****SHOW TARGET*******
+          //Show image, then, if it is on and its duration time has elapsed, remove image
+          //If it's a learn trial, show learn labels, else show single label for experiment
+          if (stateImage === 0 && stateFixation === -1) { //show
+              $('.target').show();
+              if(trialType == 'learn') {
+                  $('#learnLabel').show();
+                  imageDurationFPS = ( learnDuration*fps/1000 )*ifi - 0.5*ifi;
+              }
+              else {
+                  $('#label').show();
+                  imageDurationFPS = ( imageDuration*fps/1000 )*ifi - 0.5*ifi;
+              }
+              startTimeImage = currentTime();
+              stateImage = 1; 
+          } else if (stateImage === 1 && (currentTime() - startTimeImage) > imageDurationFPS ) { //...then hide
+              if(trialType != 'learn') {
+                $('.target').hide();
+                $('#label').hide();
+              }
+              endTimeImage = currentTime();
+              trialStruct[curTrial].imageDuration = endTimeImage - startTimeImage;
+              stateImage = -1; 
+          };
+
+          //*****COLLECT RESPONSES*******
+          if (stateResultCollect === 0 && stateImage === -1) { 
+                startTimeResultCollect = currentTime();
+                var startRT = currentTime();
+                stateResultCollect = 1;
+                resultCollectDurationFPS = ( resultCollectDuration*fps/1000 )*ifi - 0.5*ifi;
+                // if(trialType != 'learn') { 
+                //     resultCollectDurationFPS = ( resultCollectDuration*fps/1000 )*ifi - 0.5*ifi;
+                // }
+                
+                $(document).bind("keypress.respond", function(e) {
+                    // For learning: just wait until keypress, then keep track of their score
+                    // We are interested in whether they hit keys 1,2, or 3
+                    // This if statement is not affected by time limits
+                    if(trialType == 'learn') {
+                        var currCorrAns = learnCorrAns[shapeArray.indexOf(trialStruct[curTrial]['shape'])]
+                        if (e.which==oneKey) {
+                          if(currCorrAns == '1') { //if they choose option one..
+                            learn_score += 1;
+                            document.getElementById("resultMessage").innerHTML = ('Correct!');
+                            document.getElementById("resultMessage").style.color = "#39FF14";
+                          }
+                          else if(currCorrAns != '1') {
+                            document.getElementById("resultMessage").innerHTML = ('Error!');
+                            document.getElementById("resultMessage").style.color = "#FF0800";
+                          }
+                        }
+                        if (e.which==twoKey) {
+                          if(currCorrAns == '2') { //if they choose option two..
+                            learn_score += 1;
+                            document.getElementById("resultMessage").innerHTML = ('Correct!');
+                            document.getElementById("resultMessage").style.color = "#39FF14";
+                          }
+                          else if(currCorrAns != '2') {
+                            document.getElementById("resultMessage").innerHTML = ('Error!');
+                            document.getElementById("resultMessage").style.color = "#FF0800";
+                          }
+                        }
+                        if (e.which==threeKey) {
+                          if(currCorrAns == '3') { //if they choose option three..
+                            learn_score += 1;
+                            document.getElementById("resultMessage").innerHTML = ('Correct!');
+                            document.getElementById("resultMessage").style.color = "#39FF14";
+                          }
+                          else if(currCorrAns != '3') {
+                            document.getElementById("resultMessage").innerHTML = ('Error!');
+                            document.getElementById("resultMessage").style.color = "#FF0800";
+
+                          }
+                        }
+                        else if(e.which != oneKey & e.which != twoKey & e.which != threeKey) { //if they incorrectly press another key..
+                          document.getElementById("resultMessage").innerHTML = ('Error!');    
+                          document.getElementById("resultMessage").style.color = "#FF0800";          
+                        }
+                        if (e.which==oneKey || e.which==twoKey || e.which==threeKey) { 
+                            stateResultCollect = -1; 
+                            $(document).unbind("keypress.respond"); 
+                        }
+                    }
+
+                    //If practice or experiment...
+                    //This part will only run so long as there's still time on the clock (see the next else if statement)
+                    //We're interested in whether subjects click 'y' or 'n'
+                    else if(trialType != 'learn') {
+                        // code keypresses (no accuracy)
+                        if (e.which==yesKey) { // if it is y...
+                          trialStruct[curTrial].ans = 'y';
+                          if(trialStruct[curTrial]['corrAns'] == 'y') {
+                            console.log('correct');
+                            trialStruct[curTrial].acc = 1;
+                            prac_score += 1;
+                            document.getElementById("resultMessage").innerHTML = ('Correct!');
+                            document.getElementById("resultMessage").style.color = "#39FF14";
+                          }
+                          else if(trialStruct[curTrial]['corrAns'] == 'n') {
+                            console.log('incorrect');
+                            trialStruct[curTrial].acc = 0;
+                            document.getElementById("resultMessage").innerHTML = ('Error!');
+                            document.getElementById("resultMessage").style.color = "#FF0800";
+                          }
+                        }
+                        if (e.which==noKey) { // if it is n...
+                            trialStruct[curTrial].ans = 'n';
+                            if(trialStruct[curTrial]['corrAns'] == 'n') {
+                              trialStruct[curTrial].acc = 1;
+                              prac_score += 1;
+                              document.getElementById("resultMessage").innerHTML = ('Correct!');
+                              document.getElementById("resultMessage").style.color = "#39FF14";
+                            }
+                            else if(trialStruct[curTrial]['corrAns'] == 'y') {
+                              trialStruct[curTrial].acc = 0;
+                              document.getElementById("resultMessage").innerHTML = ('Error!');
+                              document.getElementById("resultMessage").style.color = "#FF0800";
+                            }
+                        }
+                        if (e.which==yesKey || e.which==noKey) { // if it is y or n:
+                          $(document).unbind("keypress.respond"); // stop waiting for keys in general
+                          trialStruct[curTrial].rt = currentTime() - startRT;
+                          trialStruct[curTrial].fpsTrial = fps;
+                        }
+                        else { //else if they don't respond, or click some other key..
+                          trialStruct[curTrial].ans = 'late';
+                          trialStruct[curTrial].acc = 'NA';
+                          document.getElementById("resultMessage").innerHTML = ('Too slow!');
+                          document.getElementById("resultMessage").style.color = "#ffff00";
+                        }
+                    }
+                });
+
+          } else if (stateResultCollect === 1 && (currentTime() - startTimeResultCollect) > resultCollectDurationFPS && trialType != 'learn' ) {
+                $(document).unbind("keypress.respond"); // stop waiting for keys
+                stateResultCollect = -1; 
+                trialStruct[curTrial].fpsTrial = fps;
+                endTimeResultCollect = currentTime();
+                trialStruct[curTrial].resultCollectDuration = endTimeResultCollect - startTimeResultCollect;
+          }
+
+          //*****SHOW RESULT*******
+          if (stateResult === 0 && stateResultCollect === -1) { 
+              if(trialType == 'learn') {  //if it's a learning trial, simply hide the learn label
+                $('#learnLabel').hide();  
+              }
+              showResultDurationFPS = ( showResultDuration*fps/1000 )*ifi - 0.5*ifi; 
+              $('#resultMessage').show(); //if practice or experimental trial, show the result
+              startTimeResult = currentTime();
+              stateResult = 1;
+          } else if (stateResult === 1 && (currentTime() - startTimeResult) > showResultDurationFPS) { //..then hide it
+              $('#resultMessage').hide();
+              endTimeResult = currentTime();
+              trialStruct[curTrial].showResultDuration = endTimeResult - startTimeResult;
+              stateResult = -1; 
+              
+              // either show another trial, show a break, move to next task type, or re-show a block (if we're doing learning or practice)
+              // or, if we're at the end, show demographics
+
+              //show another trial
+              if ( (curTrial < trialStruct.length - 1) & ((curTrial+1)%trials_per_block !== 0) ) { 
+                    curTrial++; //increase global trial counter
+                    ShowTrial(trialStruct);
+              }
+              //show 'block break'
+              else if( ((curTrial+1)%trials_per_block == 0) & (curTrial !== trialStruct.length - 1) ) {
+                    curTrial++; //increase global trial counter
+                    $('#fixation').hide();
+                    $('#block_break').show();
+              }
+              // Move to next task type, or re-show a learning/practice trial
+              else if (curTrial == trialStruct.length - 1) {
+                if(trialType == 'practice') {
+                  curTrial = 0;
+                  if(prac_score >= prac_score_target) {
+                    ShowExpInstruction();
+                  }
+                  else {
+                    prac_score = 0; //reset learning score to zero
+                    ShowPracRepeatInstruction();
+                  }
+                  
+                }
+                else if(trialType == 'learn') {
+                  curTrial = 0;
+                  if(learn_score >= learn_score_target) {
+                    ShowPracInstruction();
+                  }
+                  else {
+                    learn_score = 0; //reset learning score to zero
+                    ShowTrial()
+                  }
+                }
+                else {
+                  ShowDemographics();
+                }
+              }
+          };
+
+          //keep calling animate function until you reach end of given trial
+          if ( stateResult !== -1 ) {
+            window.requestAnimationFrame(animate);
+          }
+        };
+
+        // Begin trial dynamics
+
+        // Change image
+        $('.target').attr("src", image_loc.concat(trialStruct[curTrial].image) );
+
+        // Hide stuff at start of trial
+        $('.target').hide();
+        $('#probeQuestion').hide();
+
+        // prepare trial-specific variables
+        stateFixation = 0;
+        stateImage = 0;
+        stateResultCollect = 0;
+        stateResult = 0;
+        stateInterFix = 0;
+        t = [];
+        lastFPS = fps;
+        prevTime = currentTime();
+
+        // This is the first time animation loop gets called within showTrial
+        // window.requestAnimationFrame method tells the browser that you wish to perform an
+        // animation and requests that the browser call a specified function to update an animation 
+        //before the next repaint. The method takes a callback as an argument to be invoked before the repaint.
+        window.requestAnimationFrame(animate);
+
+    }; //end showTrial
+
+      function PrepareTrialStruct() {
+
+        //add worker and demographic data to existing trial struct
+        for(i=0; i < num_exp_trials; i++) {
+           trialStruct[i]['workerId'] = workerId
+           trialStruct[i]['condName'] = condName
+           trialStruct[i]['condNum'] = condNum
+           trialStruct[i]['shapeAssignment'] = btwn_cond
+           trialStruct[i]['assignmentId'] = assignmentId
+           trialStruct[i]['attentionMCQ'] = attentionMCQval
+           trialStruct[i]['comp'] = comp_a
+           trialStruct[i]['sex'] = sex_a
+           trialStruct[i]['age'] = $("#ss_age").val()
+           trialStruct[i]['totalTime'] = totalTime
+        }
+
+        $( "#demographics" ).hide();
+        $( "#commentBox" ).show();
+      }
+
+      function SaveData() {
+
+        /* Hide everything in the 'done' div, and replace it with 'saving...': */
+        $('#commentBox').children().hide();
+        $('#saving').show();
+
+        /* Set the assignment ID hidden input to the Turk assignment ID (required by Turk): */
+        $('#assignmentId').val(GetAssignmentId());
+          console.log($('#assignmentId').val());
+
+      /* if there's an assignment id, enable the submit button */
+        if ($('#assignmentId').val() != "NONE" && $('#assignmentId').val() != "ASSIGNMENT_ID_NOT_AVAILABLE") {
+            console.log("no assignment id");
+         // $("#customSubmit").attr('disabled',false);
+        }
+
+        /* set the submit location to either "actual mturk" or "sandbox" */
+        $("#turkSubmit").attr('action' , GetSubmitLocation() );
+        console.log($("#turkSubmit").attr('action'));
+
+        /* How long did they take to do the HIT, inclusive of reading instructions, etc? */
+        var newDate = new Date();
+        //var totalTime = newDate - startExperimentTime;
+
+        /* Get the assignment ID: */
+        var assignmentId = (IsOnTurk())? GetAssignmentId() : prompt("Doesn't look like you " +
+        "are on Turk, so you're probably testing. Enter an ID to save your data with:", "id");
+
+        /* What things to save: */
+        d = {
+          "assignmentId": assignmentId, //assignmentID
+          "workerID": workerId, //workerID
+          "curTime": newDate.today() + " @ " + newDate.timeNow(), //submission time
+          "userAgent": navigator.userAgent, //browser and version
+          "windowWidth": $(window).width(), //size of window HIT was completed in
+          "windowHeight": $(window).height(),
+          "screenWidth": screen.width, //size of their monitor
+          "screenHeight": screen.height,
+          "totalTime": totalTime, // time it took to complete the HIT
+          "trialStruct": trialStruct, //the trialStruct with all the data and conditions
+        };
+
+        $.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/addSubjects.php?experimenter=jdf&experiment=" + expName + "_" + version + "_" + condName + "_" + condNum + "_" + "&id=" + workerId, function( data ) {
+         });
+
+        SendToServer(assignmentId, d);
+      }
+
+      /* Send the data to the server as JSON: */
+      function SendToServer(id, curData) {
+        var dataToServer = {
+          'id': workerId + "_" + expName + "_" + condName + "_" + condNum + "_" + version + "_" + assignmentId, //filename to save the data with
+          'workerId' : workerId,
+          'experimenter': experimenter, // experimenter folder to save it in
+          'experimentName': experimentName, //directory to save it in
+          'curData': JSON.stringify(curData) // data to save
+        };
+
+         //Post the data to the server, using https:// or it will fail if run
+         //from within Turk:
+        $.post(server + "/turk/tools/save.php",
+          dataToServer,
+          // Whether the data gets saved or not, submit the form to Turk:
+          function(data) {
+              document.forms[0].submit();
+          }
+        ).fail(function(data) {
+              document.forms[0].submit();
+        });
+      }
+
+      function gup( name ) {
+        name = name.replace(/[\[]/,"\[").replace(/[\]]/,"\]");
+        var regexS = "[\?&]"+name+"=([^&#]*)";
+        var regex = new RegExp( regexS );
+        var param = regex.exec( window.location.href );
+        if( param == null )
+          return "";
+        else
+          return param[1];
+      }
+
+      function GetAssignmentId() {
+        var assignmentId = turkGetParam( 'assignmentId', 'NONE' );
+        return assignmentId;
+      }
+
+      </script>
+
+		<style>
+
+		#instrucKeys {
+		  position: absolute;
+		  width: 100%;
+		  text-align: center;
+		  top: 70%;
+		  font-size: 14pt;
+		}
+
+		.target {
+		  display: none;
+		  position: absolute;
+		  width: 25%;
+		  text-align: center;
+		  top: 10%;
+		  left: 40%;
+		  font-size: 14pt;
+		}
+
+		</style>
+
+  	</head>
+
+  	<body>
+
+    <!-- NOTE: you can't submit the hit without a textarea! But id can be hidden... -->
+     <textarea name="comments" id="comments" style="display: none; width: 300px; height: 200px"></textarea>
+     <button id="customSubmit" type="button" class="btn btn-default" disabled="true" onclick="Start();">Submit</button>
+
+     <!-- Wrap the entire experiment in a form. Always start the form with a hidden input for theTurk assignment ID that we'll fill in with their real assignment ID in Javascript -->
+     <!-- <form id="turkSubmit" action="https://www.mturk.com/mturk/externalSubmit" method="post" autocomplete="off"> -->
+     <form id="turkSubmit" action="" method="post" autocomplete="off">
+     <input type="hidden" name="assignmentId" id="assignmentId" value="">
+     <input type="submit" value="Submit" name="submitButton" id="submitButton" style="display: none">
+
+      <div id='consentDiv'>
+          <p><u><b>Consent to Participate in Research:</b></u></p><p>By answering the following questions, you are participating in a study being performed by cognitive scientists in the Harvard University Psychology Department.  The purpose of this research is to examine human visual performance.</p><p>By participating you are confirming that you are over 18 years of age and have normal or corrected-to-normal vision.</p><p>If you have questions about this research, or if you would like to receive a report of this research when it is completed please contact Julian De Freitas at defreitas@g.harvard.edu.</p><p>Your participation in this research is completely voluntary.  If you choose to participate, you may change your mind and leave the study at any time.  Refusal to participate or stopping your participation will involve no penalty or loss of benefits to which you are otherwise entitled.</p><p>You may decline to answer any or all of the following questions. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you. </p><p>For questions, concerns, or complaints that are not being addressed by the researcher, or research-related harm contact:  Committee on the Use of Human Subjects in Research at Harvard University, 1414 Massachusetts Avenue, Second Floor, Cambridge, MA  02138. Phone: 617-496-CUHS (2847).  Email: cuhs@fas.harvard.edu</p><p>By continuing, you are confirming that you understand these instructions and conditions of participation.</p> <br>
+<!--           <p><input type="button" id='startExperimentButton' value="Start Experiment" onclick="ShowAttention();" class="btn btn-success"/></p> -->
+          <p><input type="button" id='startExperimentButton' value="Proceed" onclick="ShowAttention();"/></p>
+      </div>
+
+      <div id='attentionCheck' bgColor = '#F5F5F5' name = "attentionCheck" align = 'left'>
+          <br>
+          <p><b> 1. How many <u>fatal</u> heart attacks have you had? </b></p>
+              <input type="radio" name="attentionCheck" value=0 /> 0 <br />
+              <input type="radio" name="attentionCheck" value=1 /> 1 <br />
+              <input type="radio" name="attentionCheck" value=2 /> 2 <br />
+              <input type="radio" name="attentionCheck" value=3 /> 3 <br />
+              <input type="radio" name="attentionCheck" value=4 /> 4 <br />
+              <input type="radio" name="attentionCheck" value=5 /> 5 <br /><br>
+
+          <p><input id = "attentionButton" class="btn btn-primary" valign="center" type="button" value="Proceed"  /></p>
+          <script>
+              $( "#attentionButton" ).on( "click", function() {
+              var checkOne =  $("#attentionCheck input[type='radio']:checked");
+                      if (checkOne.length > 0) {
+                        ShowLearnInstruction();
+                      }
+                      else if (checkOne.length <= 0) {
+                          swal("Please answer all the questions.");
+                      }
+              });
+          </script>
+          </p>
+      </div>
+
+      <div id="learnInstruction" class="instructions">
+            <div id="learnPreInstruction">
+                <p>Now, you will play a simple game.</p><br>
+            </div>
+
+            <div id="generalInstruction1">
+            </div>
+
+            <div id="learnPostInstruction">
+                <p>Lets do some LEARNING TRIALS. Your task is to press the number that represents the shape on the screen</p>
+                <p>Please press 'proceed' to start the 27 learning trials. You must get at least 21 correct, else the 27 trials will repeat. </p>
+                <p><input id="proceedOne" class="btn btn-primary" type="button" onclick="ShowLearn();" value="Start" /></p>
+            </div>
+      </div>
+
+      <div id="pracInstruction" class="instructions">
+          <div id="pracPreInstruction">
+              <p>Great, now lets do a practice trial of the main experiment. As a reminder </p>
+          </div>
+
+          <div id="generalInstruction2">
+         </div>
+
+          <div id="pracPostInstruction">
+              <p>Please press the 'n' key if the pairing is correct, or 'm' if the pairing is incorrect.</p>
+              <p>NOTE: THE SHAPES WILL BE PRESENTED <b>VERY QUICKLY</b>, so go with your gut.</p>
+              <p>While doing this, please always keep your eyes fixated on the center cross.</p>
+              <p>Are you ready? Please click 'proceed' to start the 18 PRACTICE TRIALS. You must get at least 9 correct, else the 18 trials will keep repeating.</p>
+              <p><input id="proceedOne" class="btn btn-primary" type="button" onclick="ShowPractice();" value="Start" /></p>
+          </div>
+      </div>
+
+      <div id="pracRepeatInstruction" class="instructions">
+            <div id="pracPreInstruction">
+                <p>Looks like you need more practice. </p>
+                <p> As a reminder: </p>
+            </div>
+
+            <div id="generalInstruction3">
+            </div>
+
+            <div id="pracPostInstruction">
+                <p>Shapes will be presented <b>VERY QUICKLY</b></p>
+                <p>Your task is to IMMEDIATELY identify whether the label is paired with the correct shape</p>
+                <p>Please press the 'n' key if the pairing is correct, or 'm' if the pairing is incorrect.</p>
+                <p>While doing this, please always keep your eyes fixated on the center cross.</p>
+                <p>Are you ready? Please click 'proceed' to start the 18 PRACTICE TRIALS. You must get at least 9 correct, else the 18 trials will keep repeating.</p>
+                <p><input id="proceedOne" class="btn btn-primary" type="button" onclick="ShowPractice();" value="Start" /></p>
+            </div>
+      </div>
+
+      <div id="expInstruction" class="instructions">
+          <div id="expPreInstruction">
+              <p>Great, lets do the main experiment. As a reminder:</p>
+          </div>
+
+          <div id="generalInstruction4">
+         </div>
+
+          <div id="expPostInstruction">
+              <p>Shapes will be presented <b>VERY QUICKLY</b></p>
+              <p>Please press the 'n' key if the pairing is correct, or 'm' if the pairing is incorrect.</p>
+              <p>While doing this, please always keep your eyes fixated on the center cross.</p>
+              <p>Are you ready? Please click 'proceed' to start the MAIN EXPERIMENT.</p>
+              <p>Note, there are 300 trials, and there will be a break after every 60 trials.</p>
+              <p><input id="proceedOne" class="btn btn-primary" type="button" onclick="ShowExperiment();" value="Start" /></p>
+          </div>
+      </div>
+
+      <div id="instruction_2" class="trial_counter">
+      </div>
+
+      <div id= "task">
+          <div> <img class="target" src = "images/t.png" id="firstVisual"></div>
+          <div id="fixation" class="centertext">+</div>
+          <div id="label" class="belowCenterText"><b>Blank</b></div>
+          <div id="learnLabel" class="learnBelowCenterText">
+            <p><i>Press the keyboard number corresponding to the shape presented.</i></p>
+          </div>
+          <div id="resultMessage" class="rightBelowCenterText"><b>Blank</b></div>
+          <div id="block_break" class="centertext">
+            <p>'You have finished a block!'</p>
+            <p>When you are ready, please click "Proceed"</p>
+            <p><input id="proceedOne" class="btn btn-primary" type="button" onclick="ShowTrial();" value="Proceed" /></p>
+          </div>
+      </div>
+
+      <div id="demographics" name = "demographics">
+          <div id="comprehension">
+                 <p><b>2.</b> Which, if any, of the following images did you observe in the sequence of images you saw? </p>
+                 <input type="radio" name="comp" value="A" /> A. Two cars crashing <br />
+                 <input type="radio" name="comp" value="B" /> B. A building on fire <br />
+                 <input type="radio" name="comp" value="C" /> C. An ambulance <br />
+                 <input type="radio" name="comp" value="D" /> D. Different shapes <br />
+                 <input type="radio" name="comp" value="E" /> E. None of the above
+         </div>
+		 <br>
+
+         <div id="sexAge">
+               <div id="sex">
+                     <p>
+                     <table width="410" cellspacing="1" cellpadding="20" border="0" bgcolor="#DDDDDD" align="center">
+                         <tbody>
+                             <tr>
+                                 <td>
+                                 <h2 align="center">Personal Information</h2>
+                                 <p><b>4.</b> What is your gender?</p>
+                                 <input type="radio" name="p1.sex" value="Male" /> Male <br />
+                                 <input type="radio" name="p1.sex" value="Female" /> Female
+                                 </td>
+                             </tr>
+                         </tbody>
+                     </table>
+                 </p>
+             </div>
+         </div>
+
+           <div id="age">
+                 <p>
+                 <table width="410" cellspacing="1" cellpadding="20" border="0" bgcolor="#DDDDDD" align="center">
+                     <tbody>
+                         <tr>
+                             <td>
+                             <p><b>5.</b> What is your age?</p>
+                             <p><input type="text" size="12" name="ss_age" id="ss_age" /></p>
+                             </td>
+                         </tr>
+                     </tbody>
+                 </table>
+               <p><input id = "demogrButton" valign="center" type="button" value="Proceed"  /></p>
+          <script>
+              $( "#demogrButton" ).on( "click", function() {
+              var checkFour =  $("#comprehension input[type='radio']:checked");
+                    if (checkFour.length > 0) {
+                        PrepareTrialStruct();
+                      }
+                    else {
+                      swal("Please answer all the questions.");
+                    }
+              });
+          </script>
+                 </p>
+          </div>
+     </div>
+
+        <!-- Standard post-experiment comment box (initially hidden): -->
+        <div id="commentBox">
+            <div id="doneText"><b>Done! Thanks!</b><br><br>Any comments for us? (Was it fun? Any technical difficulties?). There is no completion code; just hit 'submit'. <br><br><textarea name="comments" id="comm" style="width: 300px; height: 200px"></textarea><br><br>
+            <button id="timSubmit" type="button" class="btn btn-success" onclick="SaveData();">Submit</button>
+            </div><div id="saving">Saving . . .</div>
+        </div>
+
+	  </body>
+
+		</html>

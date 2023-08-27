@@ -1,0 +1,83 @@
+#consentDiv {
+    font-size:9pt;
+    font-family: Arial, Helvetica;
+    padding:10px;
+    max-width: 600px;
+    margin: 0 auto;
+    margin-top: 30px;
+}
+
+#saving, #customSubmit {
+    display: none;
+}
+
+.task {
+    display: none;
+    position: relative;
+    width: 750px;
+    height: 400px;
+    background: #DDDDDD;
+    border: 1px solid gray;
+    margin: 0 auto;
+    text-align: center;
+    padding: 18px;
+}
+
+#attention_mcq {
+    position: relative;
+    width: 750px;
+    height: 400px;
+    background: #DDDDDD;
+    border: 1px solid gray;
+    margin: 0 auto;
+    text-align: center;
+    padding: 18px;
+}
+
+.mcq_question {
+    display: none;
+    position: relative;
+    width: 750px;
+    height: 400px;
+    background: #DDDDDD;
+    border: 1px solid gray;
+    margin: 0 auto;
+    text-align: center;
+    padding: 18px;
+}
+
+.eq_question {
+    display: none;
+    position: relative;
+    width: 750px;
+    height: 1050px;
+    background: #DDDDDD;
+    border: 1px solid gray;
+    margin: 0 auto;
+    text-align: center;
+    padding: 18px;
+}
+
+.scaled_question {
+    display: none;
+    position: relative;
+    width: 750px;
+    height: 1300px;
+    background: #DDDDDD;
+    border: 1px solid gray;
+    margin: 0 auto;
+    text-align: left;
+    padding: 18px;
+}
+
+.scaled_question2 {
+    display: none;
+    position: relative;
+    width: 750px;
+    height: 500px;
+    background: #DDDDDD;
+    border: 1px solid gray;
+    margin: 0 auto;
+    text-align: left;
+    padding: 18px;
+}

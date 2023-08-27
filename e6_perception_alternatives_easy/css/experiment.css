@@ -1,0 +1,184 @@
+#consentDiv {
+  display: none;
+  font-size:9pt;
+  font-family: Arial, Helvetica;
+  padding:10px;
+  max-width: 600px;
+  margin: 0 auto;
+  margin-top: 30px;
+}
+
+.mcq_question {
+  display: none;
+  position: relative;
+  width: 750px;
+  height: 400px;
+  background: #DDDDDD;
+  border: 1px solid gray;
+  margin: 0 auto;
+  text-align: center;
+  padding: 18px;
+}
+
+.scaled_question {
+  display: none;
+  position: relative;
+  width: 750px;
+  height: 400px;
+  background: #DDDDDD;
+  border: 1px solid gray;
+  margin: 0 auto;
+  text-align: left;
+  padding: 18px;
+}
+
+#attentionCheck{
+  display: none;
+  position: relative;
+  width: 800px;
+  height: 500px;
+  border: 1px solid gray;
+  margin: 0 auto;
+  background: #818181;
+  text-align: center;
+  color: white;
+}
+
+.text_entry {
+  display: none;
+  text-align: center;
+  z-index: 1;
+}
+
+.instructions {
+  display: none;
+  position: relative; 
+  width: 800px;
+  height: 920px;
+  border: 1px solid gray;
+  margin: 0 auto;
+  background: #818181;
+  text-align: center;
+  color: white;
+}
+
+#task {
+  display: none;
+  position: relative;
+  width: 800px;
+  height: 554px;
+  border: 1px solid gray;
+  margin: 0 auto;
+  background: #818181;
+}
+
+#best_friend {
+  padding: 20px;
+}
+
+#attention_button {
+  color: black;
+}
+
+.centertext {
+  display: none;
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 213px; /* (3+442.5)/2-19/2 (3px top margin, 442.5px image height, 14pt==19px font size */
+  font-size: 14pt;
+  color: white;
+}
+      
+.trial_counter {
+  display: none;
+  left: 100px;
+  text-align: center;
+  z-index: 1;
+}
+
+#firstVisual {
+  display: none;
+  position: absolute;
+  /* top: 56px; /*(554-442)/2 /*40px; /*200 - 131.25*/
+  top: 118px;
+  left: 305px; /* (800-590)/2 80px; /*120px; /*400 - 175*/
+  width: 190px; /*400 - 175*/
+  z-index: 100;
+  opacity: 1;
+  color: white;
+}
+
+#demographics {
+  padding: 10px;
+  display: none;
+  position: relative;
+  width: 800px;
+  height: 700px;
+  background: #818181;
+  border: 1px solid gray;
+  margin: 0 auto;
+  text-align: center;
+  z-index: 100;
+  color: black;
+}
+
+#commentBox {
+  padding:10px;
+  display: none;
+  position: relative;
+  width: 900px;
+  height: 500px;
+  background: #818181;
+  border: 1px solid gray;
+  margin: 0 auto;
+  z-index: 1;
+  text-align: center;
+}
+
+#saving, #customSubmit {
+  display: none;
+}
+
+.text {
+  display: none;
+  color: white; 
+  font-size: 19pt;
+  width: 100%;
+}
+
+      .belowCenterText {
+        display: none;
+		    position: absolute;
+        width: 100%;
+        text-align: center;
+        /* top: 50%; */
+        /* margin-top: -20px; */
+		    top: 320px; /* (3+442.5)/2-19/2 (3px top margin, 442.5px image height, 14pt==19px font size */
+        font-size: 19pt;
+        color: white;
+      }
+
+      .learnBelowCenterText {
+        display: none;
+		    position: absolute;
+        width: 100%;
+        text-align: center;
+        /* top: 50%; */
+        /* margin-top: -20px; */
+		    top: 320px; /* (3+442.5)/2-19/2 (3px top margin, 442.5px image height, 14pt==19px font size */
+        font-size: 19pt;
+        color: white;
+      }
+
+      .rightBelowCenterText {
+        display: none;
+		    position: absolute;
+        width: 100%;
+        text-align: center;
+        /* top: 50%; */
+        /* margin-top: -20px; */
+		    top: 320px; /* (3+442.5)/2-19/2 (3px top margin, 442.5px image height, 14pt==19px font size */
+        font-size: 22pt;
+        color: #ffffcc;
+      }

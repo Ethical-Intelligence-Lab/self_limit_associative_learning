@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
+    <script src="https://scorsese.wjh.harvard.edu/turk/tools/TimTurkToolsPlus.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.2/velocity.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@7.28.1/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/experiment.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <script>
+
+    var exp_name = "singleIdentity_norming";
+    var version = "v1";
+    var cond = "cond1";
+    var cond_num = 1;
+    var cond_name = "norming";
+
+    $(document).ready(function(){
+
+          console.log(GetSubmitLocation());
+          workerId = gup('workerId');
+          console.log("worker id is_" + workerId);
+          assignmentId = gup('assignmentId');
+          console.log("assignment id exp is_" + assignmentId);
+
+          // Create data entry in sequel pro database
+          $.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/addSubjects.php?experimenter=jdf&experiment=" + exp_name + "_" + version + "_" + cond + "_" + cond_name + "&id=" + workerId, function( data ) {
+          });
+    });
+
+    //global variables
+    var startExperimentTime = 0;
+    var displayTime = '';
+    var attention_mcq_a = '';
+    var q_duplicate_a = ''; q_futures_a = ''; q_20young_20old_a = ''; q_true_surface_a = ''; q_1myoung_1mold_a = ''; q_18young_60old_a = ''; q_healthy_unhealthy_a = '';
+    var comp_imagine_a = ''; comp_num_versions_a = '';
+    var sex_a = ''; age_a = ''; language_a = '';
+    var trialStruct = [];
+    var comments = ''
+    var experimenter = 'jdf';
+    var experimentName = exp_name + "_" + version + "_" + cond; //name to save data on server with
+    var server = 'https://scorsese.wjh.harvard.edu';
+
+
+    //1
+    function ShowQuestions() {
+
+        $('#attention_mcq').hide();
+        $('#task').show();
+        $('#instructions').show();
+        $('#questions').show();
+
+        startExperimentTime = new Date();
+        $( "#attention_mcq" ).on( "click", function() {
+        var qZero =  $("#attention_mcq input[type='radio']:checked");
+            if (qZero.length > 0) {
+                attention_mcq_a = parseFloat(qZero.val());
+                }
+        });
+
+        $( "#1_original_duplicate" ).on( "click", function() {
+        var qOne =  $("#1_original_duplicate input[type='radio']:checked");
+            if (qOne.length > 0) {
+                q_duplicate_a = parseFloat(qOne.val());
+            }
+        });
+
+        $( "#2_future1_future2" ).on( "click", function() {
+        var qTwo =  $("#2_future1_future2 input[type='radio']:checked");
+            if (qTwo.length > 0) {
+                q_futures_a = parseFloat(qTwo.val());
+            }
+        });
+
+        $( "#3_20young_20old" ).on( "click", function() {
+        var qThree =  $("#3_20young_20old input[type='radio']:checked");
+            if (qThree.length > 0) {
+                q_20young_20old_a = parseFloat(qThree.val());
+            }
+        });
+
+        $( "#4_true_surface" ).on( "click", function() {
+        var qFour =  $("#4_true_surface input[type='radio']:checked");
+            if (qFour.length > 0) {
+                q_true_surface_a = parseFloat(qFour.val());
+            }
+        });
+
+        $( "#5_1myoung_1mold" ).on( "click", function() {
+        var qFive =  $("#5_1myoung_1mold input[type='radio']:checked");
+            if (qFive.length > 0) {
+                q_1myoung_1mold_a = parseFloat(qFive.val());
+            }
+        });
+
+        $( "#6_18young_60old" ).on( "click", function() {
+        var qSix =  $("#6_18young_60old input[type='radio']:checked");
+            if (qSix.length > 0) {
+                q_18young_60old_a = parseFloat(qSix.val());
+            }
+        });
+
+        $( "#7_healthy_unhealthy" ).on( "click", function() {
+        var qSeven =  $("#7_healthy_unhealthy input[type='radio']:checked");
+            if (qSeven.length > 0) {
+                q_healthy_unhealthy_a = parseFloat(qSeven.val());
+            }
+        });
+    }
+
+    //2
+    function ShowComprehension() {
+        
+        window.scrollTo(0, 0);
+        $('#task').hide();
+        $('#instructions').hide();
+        $('#questions').hide();
+        $('#comprehension_mcq').show();
+
+        $( "#comp_imagine" ).on( "click", function() {
+        var qEight =  $("#comp_imagine input[type='radio']:checked");
+            if (qEight.length > 0) {
+                comp_imagine_a = parseFloat(qEight.val());
+            }
+        });
+
+        $( "#comp_num_versions" ).on( "click", function() {
+        var qNine =  $("#comp_num_versions input[type='radio']:checked");
+            if (qNine.length > 0) {
+                comp_num_versions_a = parseFloat(qNine.val());
+            }
+        });
+    }
+
+    //3
+    function ShowDemographics() {
+        $('#comprehension_mcq').hide();
+        $('#demographics_mcq').show();
+
+        $( "#sex_mcq" ).on( "click", function() {
+        var qSix =  $("#sex_mcq input[type='radio']:checked");
+            if (qSix.length > 0) {
+                sex_a = parseFloat(qSix.val());
+            }
+        });   
+        
+        $( "#language_mcq" ).on( "click", function() {
+        var qSeven =  $("#language_mcq input[type='radio']:checked");
+            if (qSeven.length > 0) {
+                language_a = parseFloat(qSeven.val());
+            }
+        });                        
+    }
+
+    //4
+    function ShowCommentBox() {
+        console.log('got here');
+        $('#demographics_mcq').hide();
+        $('#commentBox').show();
+        displayTime = (new Date() - startExperimentTime)/1000;
+    }
+
+    /* Save the data to the server (choose what to save): */
+    function SaveData() {
+        /* Now lets push it all into the trialStruct: */
+        
+        trialStruct.push({
+            'exp': exp_name,
+            'version': version,
+            'cond_num': cond_num,
+            'cond_name' : cond_name,
+            'attention' : attention_mcq_a,
+            'q1_duplicate' : q_duplicate_a,
+            'q2_futures' : q_futures_a,
+            'q3_20young_20old' : q_20young_20old_a,
+            'q4_true_surface' : q_true_surface_a,
+            'q5_1myoung_1mold' : q_1myoung_1mold_a,
+            'q6_18young_60old' : q_18young_60old_a,
+            'q7_futures_2' : q_futures_a,
+            'q8_healthy_unhealthy' : q_healthy_unhealthy_a,
+            'comp_imagine' : comp_imagine_a, 
+            'comp_num_versions' : comp_num_versions_a,
+            'age': parseFloat($('#age').val()),
+            'sex': sex_a,
+            'language': language_a,
+            "comments": $('#comm').val(), // their comments
+            'displayTime': displayTime
+        });
+
+        /* Hide everything in the 'done' div, and replace it with 'saving...': */
+        $('#commentBox').children().hide();
+        $('#saving').show();
+
+        /* Set the assignment ID hidden input to the Turk assignment ID (required by Turk): */
+        $('#assignmentId').val(GetAssignmentId());
+        console.log($('#assignmentId').val());
+
+        /* if there's an assignment id, enable the submit button */
+        if ($('#assignmentId').val() != "NONE" && $('#assignmentId').val() != "ASSIGNMENT_ID_NOT_AVAILABLE") {
+            console.log("no assignment id");
+        // $("#customSubmit").attr('disabled',false);
+        }
+
+        /* set the submit location to either "actual mturk" or "sandbox" */
+        $("#turkSubmit").attr('action' , GetSubmitLocation() );
+        console.log($("#turkSubmit").attr('action'));
+
+        /* How long did they take to do the HIT, inclusive of reading instructions, etc? */
+        var newDate = new Date();
+        var totalTime = newDate - startExperimentTime;
+
+        /* Get the assignment ID: */
+        var curID = (IsOnTurk())? GetAssignmentId() : prompt("Doesn't look like you " +
+        "are on Turk, so you're probably testing. Enter an ID to save your data with:", "id");
+
+        /* What things to save: */
+        d = {
+            "curID": curID, //assignmentID
+            "workerID": workerId, //workerID
+            "curTime": newDate.today() + " @ " + newDate.timeNow(), //submission time
+            "userAgent": navigator.userAgent, //browser and version
+            "windowWidth": $(window).width(), //size of window HIT was completed in
+            "windowHeight": $(window).height(),
+            "screenWidth": screen.width, //size of their monitor
+            "screenHeight": screen.height,
+            "totalTime": totalTime, // time it took to complete the HIT
+            "trialStruct": trialStruct //the trialStruct with all the data and conditions
+        };
+
+        $.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/addSubjects.php?experimenter=jdf&experiment=" + exp_name + "_" + version + "_" + cond + "_" + cond_name + "&id=" + workerId, function( data ) {
+        });
+
+        SendToServer(curID, d);
+    }
+
+        /* Send the data to the server as JSON: */
+        function SendToServer(id, curData) {
+          var dataToServer = {
+            'id': workerId + "_" + exp_name + "_" + cond + "_" + cond_name + "_" + version + "_" + assignmentId, //filename to save the data with
+            'workerId' : workerId,
+            'experimenter': experimenter, // experimenter folder to save it in
+            'experimentName': experimentName, //directory to save it in
+            'curData': JSON.stringify(curData) // data to save
+          };
+
+           //Post the data to the server, using https:// or it will fail if run
+           //from within Turk:
+          $.post(server + "/turk/tools/save.php",
+            dataToServer,
+            // Whether the data gets saved or not, submit the form to Turk:
+            function(data) {
+                document.forms[0].submit();
+            }
+          ).fail(function(data) {
+                document.forms[0].submit();
+          });
+
+        }
+
+        function gup( name )
+        {
+          name = name.replace(/[\[]/,"\[").replace(/[\]]/,"\]");
+          var regexS = "[\?&]"+name+"=([^&#]*)";
+          var regex = new RegExp( regexS );
+          var param = regex.exec( window.location.href );
+          if( param == null )
+            return "";
+          else
+            return param[1];
+        }
+
+        function GetAssignmentId() {
+          var assignmentId = turkGetParam( 'assignmentId', 'NONE' );
+          return assignmentId;
+        }
+
+    </script>
+
+  </head>
+
+  <body>
+
+    <!-- NOTE: you can't submit the hit without a textarea! But id can be hidden... -->
+    <textarea name="comments" id="comments" style="display: none; width: 300px; height: 200px"></textarea>
+    <button id="customSubmit" type="button" class="btn btn-default" disabled="true" onclick="Start();">Submit</button>
+
+    <!-- Wrap the entire experiment in a form. Always start the form with a hidden input for theTurk assignment ID that we'll fill in with their real assignment ID in Javascript -->
+    <!-- <form id="turkSubmit" action="https://www.mturk.com/mturk/externalSubmit" method="post" autocomplete="off"> -->
+    <form id="turkSubmit" action="" method="post" autocomplete="off">
+    <input type="hidden" name="assignmentId" id="assignmentId" value="">
+    <input type="submit" value="Submit" name="submitButton" id="submitButton" style="display: none">
+
+
+    <div id="attention_mcq" align= "center">
+            <br>
+            <p><b> 1. How many <u>fatal</u> heart attacks have you had? </b></p>
+                <input type="radio" name="att" value=0 /> 0 <br />
+                <input type="radio" name="att" value=1 /> 1 <br />
+                <input type="radio" name="att" value=2 /> 2 <br />
+                <input type="radio" name="att" value=3 /> 3 <br />
+                <input type="radio" name="att" value=4 /> 4 <br />
+                <input type="radio" name="att" value=5 /> 5 <br /><br>
+
+            <p><input id = "attentionButton" class="btn btn-primary" valign="center" type="button" value="Proceed"  /></p>
+            <script>
+                $( "#attentionButton" ).on( "click", function() {
+                var checkZero =  $("#attention_mcq input[type='radio']:checked");
+                        if (checkZero.length > 0) {
+                            ShowQuestions();
+                        }
+                        else if (checkZero.length <= 0) {
+                            swal("Please answer all the questions.");
+                        }
+                });
+            </script>
+            </p>
+    </div>
+
+    <div id= "task" class = "scaled_question" >
+
+        <div id="instructions" align= "center">
+            <i><p>Each question below asks you to imagine two versions of yourself. For each question, please rate the extent to which you think the two versions of yourself are only a little different or extremely different.</p></i>
+        </div>
+
+
+        <div id="questions" align= "center">
+                <script>
+                    $(function () {
+                        var parent = $("#questions");
+                        var divs = parent.children();
+                        while (divs.length) {
+                            parent.append(divs.splice(Math.floor(Math.random() * divs.length), 1)[0]);
+                        }
+                    });
+                </script>
+
+                <div id="1_original_duplicate">
+                        <br><p><b> Two versions of you in a hypothetical future where it is possible to create perfect copies of people: The original you and an identical copy of you. </b></p>
+                        <p>
+                        <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                            <tbody>
+                                <tr>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=1 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=2 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=3 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=4 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=5 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=6 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=7 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=8 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="duplicate" value=9 /></td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" align="center">1</td>
+                                    <td valign="top" align="center">2</td>
+                                    <td valign="top" align="center">3</td>
+                                    <td valign="top" align="center">4</td>
+                                    <td valign="top" align="center">5</td>
+                                    <td valign="top" align="center">6</td>
+                                    <td valign="top" align="center">7</td>
+                                    <td valign="top" align="center">8</td>
+                                    <td valign="top" align="center">9</td>
+                                </tr>
+                                <tr>
+                                <td valign="center" align="left" colspan="3">A little<br>different</td>
+                                <td valign="center" align="right" colspan="10">Extremely<br>different</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                </div>
+
+                <div id="2_future1_future2">
+                        <br><p><b> Two possible versions of you 2 hours in the future: one searching for something in a particular isle of a supermarket, and another searching for something in a different isle of the supermarket. </b></p>
+                        <p>
+                        <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                            <tbody>
+                                <tr>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=1 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=2 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=3 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=4 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=5 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=6 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=7 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=8 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="futures" value=9 /></td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" align="center">1</td>
+                                    <td valign="top" align="center">2</td>
+                                    <td valign="top" align="center">3</td>
+                                    <td valign="top" align="center">4</td>
+                                    <td valign="top" align="center">5</td>
+                                    <td valign="top" align="center">6</td>
+                                    <td valign="top" align="center">7</td>
+                                    <td valign="top" align="center">8</td>
+                                    <td valign="top" align="center">9</td>
+                                </tr>
+                                <tr>
+                                <td valign="center" align="left" colspan="3">A little<br>different</td>
+                                <td valign="center" align="right" colspan="10">Extremely<br>different</td>
+                                </tr>
+                            </tbody>
+                        </table>                
+                </div>
+
+                <div id="3_20young_20old">
+                        <br><p><b> Two versions of you in the past and future: The younger you 20 years ago and the older you 20 years from now. </b></p>
+                        <p>
+                        <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                            <tbody>
+                                <tr>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=1 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=2 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=3 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=4 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=5 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=6 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=7 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=8 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="20_years" value=9 /></td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" align="center">1</td>
+                                    <td valign="top" align="center">2</td>
+                                    <td valign="top" align="center">3</td>
+                                    <td valign="top" align="center">4</td>
+                                    <td valign="top" align="center">5</td>
+                                    <td valign="top" align="center">6</td>
+                                    <td valign="top" align="center">7</td>
+                                    <td valign="top" align="center">8</td>
+                                    <td valign="top" align="center">9</td>
+                                </tr>
+                                <tr>
+                                <td valign="center" align="left" colspan="3">A little<br>different</td>
+                                <td valign="center" align="right" colspan="10">Extremely<br>different</td>
+                                </tr>
+                            </tbody>
+                        </table>                
+                </div>
+
+                <div id="4_true_surface">
+                        <br><p><b> Two versions of you: Your true self (who you are deep down) and your surface self (those things that you picked up from society, rather than who you truly are deep down.) </b></p>
+                        <p>
+                        <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                            <tbody>
+                                <tr>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=1 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=2 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=3 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=4 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=5 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=6 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=7 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=8 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="true" value=9 /></td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" align="center">1</td>
+                                    <td valign="top" align="center">2</td>
+                                    <td valign="top" align="center">3</td>
+                                    <td valign="top" align="center">4</td>
+                                    <td valign="top" align="center">5</td>
+                                    <td valign="top" align="center">6</td>
+                                    <td valign="top" align="center">7</td>
+                                    <td valign="top" align="center">8</td>
+                                    <td valign="top" align="center">9</td>
+                                </tr>
+                                <tr>
+                                <td valign="center" align="left" colspan="3">A little<br>different</td>
+                                <td valign="center" align="right" colspan="10">Extremely<br>different</td>
+                                </tr>
+                            </tbody>
+                        </table>                
+                </div>
+
+                <div id="5_1myoung_1mold">
+                        <br><p><b> Two versions of you in the past and future: Your younger self 1 month ago, and your older self 1 month in the future. </b></p>
+                        <p>
+                        <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                            <tbody>
+                                <tr>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=1 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=2 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=3 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=4 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=5 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=6 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=7 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=8 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="1_month" value=9 /></td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" align="center">1</td>
+                                    <td valign="top" align="center">2</td>
+                                    <td valign="top" align="center">3</td>
+                                    <td valign="top" align="center">4</td>
+                                    <td valign="top" align="center">5</td>
+                                    <td valign="top" align="center">6</td>
+                                    <td valign="top" align="center">7</td>
+                                    <td valign="top" align="center">8</td>
+                                    <td valign="top" align="center">9</td>
+                                </tr>
+                                <tr>
+                                <td valign="center" align="left" colspan="3">A little<br>different</td>
+                                <td valign="center" align="right" colspan="10">Extremely<br>different</td>
+                                </tr>
+                            </tbody>
+                        </table>                
+               </div>
+
+               <div id="6_18young_60old">
+                        <br><p><b> Two versions of you in the past and future: Your 18-year old self and 60-year old self. </b></p>
+                        <p>
+                        <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                            <tbody>
+                                <tr>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=1 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=2 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=3 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=4 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=5 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=6 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=7 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=8 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="18_60" value=9 /></td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" align="center">1</td>
+                                    <td valign="top" align="center">2</td>
+                                    <td valign="top" align="center">3</td>
+                                    <td valign="top" align="center">4</td>
+                                    <td valign="top" align="center">5</td>
+                                    <td valign="top" align="center">6</td>
+                                    <td valign="top" align="center">7</td>
+                                    <td valign="top" align="center">8</td>
+                                    <td valign="top" align="center">9</td>
+                                </tr>
+                                <tr>
+                                <td valign="center" align="left" colspan="3">A little<br>different</td>
+                                <td valign="center" align="right" colspan="10">Extremely<br>different</td>
+                                </tr>
+                            </tbody>
+                        </table>                
+                </div> 
+
+                <div id="7_healthy_unhealthy">
+                        <br><p><b> Two versions of you: A time in your life in which you have been very health conscious, wanting to eat only healthy foods, and a time in your life in which you have been much less health conscious, eating whatever you want. </b></p>
+                        <p>
+                        <table cellspacing="1" cellpadding="0" border="0" bgcolor="#DDDDDD" align="center" width="90%">
+                            <tbody>
+                                <tr>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=1 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=2 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=3 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=4 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=5 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=6 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=7 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=8 /></td>
+                                    <td width="10%" align="center"><input type="radio" name="health" value=9 /></td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" align="center">1</td>
+                                    <td valign="top" align="center">2</td>
+                                    <td valign="top" align="center">3</td>
+                                    <td valign="top" align="center">4</td>
+                                    <td valign="top" align="center">5</td>
+                                    <td valign="top" align="center">6</td>
+                                    <td valign="top" align="center">7</td>
+                                    <td valign="top" align="center">8</td>
+                                    <td valign="top" align="center">9</td>
+                                </tr>
+                                <tr>
+                                <td valign="center" align="left" colspan="3">A little<br>different</td>
+                                <td valign="center" align="right" colspan="10">Extremely<br>different</td>
+                                </tr>
+                            </tbody>
+                        </table>                
+                    </div>
+            </div>
+
+            <div>
+                    <br><p><input id = "questButton" class="btn btn-primary" valign="center" type="button" value="Proceed"  /></p>
+                    <script>
+                        $( "#questButton" ).on( "click", function() {
+                        var checkOne =  $("#1_original_duplicate input[type='radio']:checked");
+                        var checkTwo = $("#2_future1_future2 input[type='radio']:checked");
+                        var checkThree = $("#3_20young_20old input[type='radio']:checked");
+                        var checkFour = $("#4_true_surface input[type='radio']:checked");
+                        var checkFive = $("#5_1myoung_1mold input[type='radio']:checked");
+                        var checkSix = $("#6_18young_60old input[type='radio']:checked");
+                        var checkSeven = $("#7_healthy_unhealthy input[type='radio']:checked");
+                                if (checkTwo.length > 0 && checkThree.length > 0 && checkFour.length > 0 && checkFive.length > 0 && checkSix.length > 0 && checkSeven.length > 0 ) {
+                                    ShowComprehension();
+                                }
+                                else {
+                                    swal("Please answer all the questions.");
+                                }
+                        });
+                    </script> 
+            </div>
+    </div>
+
+    <div id="comprehension_mcq" class="scaled_question2">
+
+        <p> Now, please answer the following comprehension questions </p>
+
+        <div id="comp_imagine">
+            <p><b> 2. According to the questions, you were asked to imagine different versions of...  </b></p>
+            <input type="radio" name="comp_imagine" value=1 /> Others <br/>
+            <input type="radio" name="comp_imagine" value=2 /> You <br/>
+            <input type="radio" name="comp_imagine" value=3 /> Objects <br/>
+            <input type="radio" name="comp_imagine" value=4 /> Kites <br /><br>
+        </div>
+    
+        <div id="comp_num_versions">
+            <p><b> 3. For each question, how many versions did you compare? </b></p>
+            <input type="radio" name="comp_num_versions" value=1 /> Zero <br />
+            <input type="radio" name="comp_num_versions" value=2 /> One <br />
+            <input type="radio" name="comp_num_versions" value=3 /> Two <br />
+            <input type="radio" name="comp_num_versions" value=4 /> Three <br />
+            <input type="radio" name="comp_num_versions" value=5 /> Four <br />
+        </div>
+
+        <br><p><input id = "compButton" class="btn btn-primary" valign="center" type="button" value="Proceed"  /></p>
+        <script>
+            $( "#compButton" ).on( "click", function() {
+            var checkEight =  $("#comp_imagine input[type='radio']:checked");
+            var checkNine = $("#comp_num_versions input[type='radio']:checked");
+                    if (checkEight.length > 0 && checkNine.length > 0) {
+                        ShowDemographics();
+                    }
+                    else {
+                        swal("Please answer all the questions.");
+                    }
+            });
+        </script>
+
+    </div>
+
+    <div id="demographics_mcq" class = "scaled_question2">
+
+        <div id="age_textbox">
+                <p>
+                    <table width="410" cellspacing="1" cellpadding="20" border="0" bgcolor="#DDDDDD">
+                        <tbody>
+                            <tr>
+                                <td>
+                                <p><b> 4. What is your age? </b></p>
+                                <p><input type="text" size="12" name="age" id="age" /></p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </p>
+        </div>
+
+        <div id="sex_mcq">
+            <p>
+                <table width="410" cellspacing="1" cellpadding="20" border="0" bgcolor="#DDDDDD">
+                    <tbody>
+                        <tr>
+                            <td>
+                            <p><b> 5. What is your gender? </b></p>
+                            <input type="radio" name="sex" value=1 /> Male <br />
+                            <input type="radio" name="sex" value=2 /> Female <br />
+                            <input type="radio" name="sex" value=3 /> Other <br />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </p>
+        </div>
+
+        <div id="language_mcq">
+            <p>
+                <table width="410" cellspacing="1" cellpadding="20" border="0" bgcolor="#DDDDDD">
+                    <tbody>
+                        <tr>
+                            <td>
+                             <p><b> 6. What is your native language? </b></p>
+                            <input type="radio" name="language" value=1 /> English <br />
+                            <input type="radio" name="language" value=2 /> Spanish <br />
+                            <input type="radio" name="language" value=3 /> Chinese <br />
+                            <input type="radio" name="language" value=4 /> Other <br />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </p>
+        </div>
+
+        <br><p><input id = "demoButton" class="btn btn-primary" valign="center" type="button" value="Proceed"  /></p>
+        <script>
+            $( "#demoButton" ).on( "click", function() {
+            var checkEighteen =  $("#sex_mcq input[type='radio']:checked");
+            var checkNineteen = $("#language_mcq input[type='radio']:checked");
+                    if (checkEighteen.length > 0 && checkNineteen.length > 0) {
+                        ShowCommentBox();
+                    }
+                    else {
+                        swal("Please answer all the questions.");
+                    }
+            });
+        </script>
+
+    </div>
+
+        <!-- Standard post-experiment comment box (initially hidden): -->
+        <div id="commentBox" class="scaled_question2">
+                <div id="doneText">Done! Thanks!<br><br>Any comments for us? (Was it fun? Any technical difficulties?)<br><br><textarea name="comments" id="comm" style="width: 300px; height: 200px"></textarea><br><br>
+                <a href="javascript:SaveData()" id="timSubmit">Submit</a>
+                </div><div id="saving">Saving . . .</div>
+        </div>
+
+  </body>
+
+<html>

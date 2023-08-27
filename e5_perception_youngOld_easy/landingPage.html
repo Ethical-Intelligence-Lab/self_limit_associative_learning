@@ -1,0 +1,255 @@
+
+<html>
+
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="https://scorsese.wjh.harvard.edu/turk/tools/TimTurkToolsPlus.js"></script>
+		<script src="https://scorsese.wjh.harvard.edu/turk/tools/ids.php"></script>
+		<script src="js/sweetalert.min.js"></script>
+		<script src="js/sweetalert-master/dist/sweetalert.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="js/sweetalert-master/dist/sweetalert.css">
+
+		<script>
+
+		// This is the first page a subject sees, before being directed to one of seven conditions
+		// If subject has previously participated, throw a message, otherwise allocate to the condition with least no. of completed subjects
+		//Paste this code into the mturk url window
+
+		//*********************************** PARTS TO MODIFY *************************************
+
+		//existing experiments in this project (add new experiments to the BEGINNING of this array)
+		//these should be the names of your html files, which should match the entries in the sequel database, 
+		//except it should omit the first part that's the experiment name, e.g., 'fetus-e11-mind_v1_cond1_fetus' -> '-e11-mind_v1_cond1_fetus'
+		experimatrix = ['perception_v1_healthy_0_1_', 'perception_v1_healthy_1_1_', 'perception_v1_healthy_2_1_',
+		'perception_v1_healthy_3_1_', 'perception_v1_healthy_4_1_', 'perception_v1_healthy_5_1_',
+		'perception_v1_healthyUnhealthy_0_2_', 'perception_v1_healthyUnhealthy_1_2_', 'perception_v1_healthyUnhealthy_2_2_',
+		'perception_v1_healthyUnhealthy_3_2_', 'perception_v1_healthyUnhealthy_4_2_', 'perception_v1_healthyUnhealthy_5_2_',
+		'youngOld_powered_v2_young_0_1_', 'youngOld_powered_v2_young_1_1_', 'youngOld_powered_v2_young_2_1_', 'youngOld_powered_v2_young_3_1_', 
+		'youngOld_powered_v2_young_4_1_', 'youngOld_powered_v2_young_5_1_', 'youngOld_powered_v2_youngOld_0_2_', 'youngOld_powered_v2_youngOld_1_2_', 
+		'youngOld_powered_v2_youngOld_2_2_', 'youngOld_powered_v2_youngOld_3_2_', 'youngOld_powered_v2_youngOld_4_2_', 'youngOld_powered_v2_youngOld_5_2_', 			
+		'control_v1_hat_0_1_', 'control_v1_hat_1_1_', 'control_v1_hat_2_1_', 'control_v1_hat_3_1_', 'control_v1_hat_4_1_', 'control_v1_hat_5_1_', 
+		'v1_memory_association_young_hard_0_1_', 'v1_memory_association_young_hard_1_1_', 'v1_memory_association_young_hard_2_1_',
+		'v1_memory_association_young_hard_3_1_', 'v1_memory_association_young_hard_4_1_', 'v1_memory_association_young_hard_5_1_',
+		'v1_memory_association_youngOld_hard_0_2_', 'v1_memory_association_youngOld_hard_1_2_', 'v1_memory_association_youngOld_hard_2_2_',
+		'v1_memory_association_youngOld_hard_3_2_', 'v1_memory_association_youngOld_hard_4_2_', 'v1_memory_association_youngOld_hard_5_2_',
+		'v1_memory_association_healthy_hard_0_1_', 'v1_memory_association_healthy_hard_1_1_', 'v1_memory_association_healthy_hard_2_1_',
+		'v1_memory_association_healthy_hard_3_1_', 'v1_memory_association_healthy_hard_4_1_', 'v1_memory_association_healthy_hard_5_1_',
+		'v1_memory_association_healthyUnhealthy_hard_0_2_', 'v1_memory_association_healthyUnhealthy_hard_1_2_', 
+		'v1_memory_association_healthyUnhealthy_hard_2_2_', 'v1_memory_association_healthyUnhealthy_hard_3_2_', 
+		'v1_memory_association_healthyUnhealthy_hard_4_2_', 'v1_memory_association_healthyUnhealthy_hard_5_2_',
+		'v1_memory_association_healthy_0_1_', 'v1_memory_association_healthy_1_1_', 'v1_memory_association_healthy_2_1_',
+		'v1_memory_association_healthy_3_1_', 'v1_memory_association_healthy_4_1_', 'v1_memory_association_healthy_5_1_', 
+		'v1_memory_association_healthyUnhealthy_0_2_', 'v1_memory_association_healthyUnhealthy_1_2_', 'v1_memory_association_healthyUnhealthy_2_2_',
+		'v1_memory_association_healthyUnhealthy_3_2_', 'v1_memory_association_healthyUnhealthy_4_2_', 'v1_memory_association_healthyUnhealthy_5_2_',
+		'tsSurface_v1_ts_0_1_', 'tsSurface_v1_ts_1_1_', 'tsSurface_v1_ts_2_1_', 'tsSurface_v1_ts_3_1_', 'tsSurface_v1_ts_4_1_',
+		'tsSurface_v1_ts_5_1_', 'tsSurface_v1_tsSurface_0_2_', 'tsSurface_v1_tsSurface_1_2_', 'tsSurface_v1_tsSurface_2_2_',
+		'tsSurface_v1_tsSurface_3_2_', 'tsSurface_v1_tsSurface_4_2_', 'tsSurface_v1_tsSurface_5_2_', 'v1_memory_association_ts_0_1_', 
+		'v1_memory_association_ts_1_1_', 'v1_memory_association_ts_2_1_', 'v1_memory_association_ts_3_1_', 'v1_memory_association_ts_4_1_',
+		'v1_memory_association_ts_5_1_', 'v1_memory_association_tsSurface_0_2_', 'v1_memory_association_tsSurface_1_2_', 
+		'v1_memory_association_tsSurface_2_2_', 'v1_memory_association_tsSurface_3_2_', 'v1_memory_association_tsSurface_4_2_', 
+		'v1_memory_association_tsSurface_5_2_', 'v1_memory_association_young_0_1_', 'v1_memory_association_young_1_1_', 
+		'v1_memory_association_young_2_1_', 'v1_memory_association_young_3_1_', 'v1_memory_association_young_4_1_', 
+		'v1_memory_association_young_5_1_', 'v1_memory_association_youngOld_0_2_', 'v1_memory_association_youngOld_1_2_', 
+		'v1_memory_association_youngOld_1_2_', 'v1_memory_association_youngOld_2_2_', 'v1_memory_association_youngOld_3_2_',
+		'v1_memory_association_youngOld_4_2_', 'v1_memory_association_youngOld_5_2_', 'youngOld_v1_young_0_1_', 'youngOld_v1_young_1_1_', 
+		'youngOld_v1_young_2_1_', 'youngOld_v1_young_3_1_', 'youngOld_v1_young_4_1_', 'youngOld_v1_young_5_1_', 'youngOld_v1_youngOld_0_2_',
+		'youngOld_v1_youngOld_1_2_', 'youngOld_v1_youngOld_2_2_', 'youngOld_v1_youngOld_3_2_', 'youngOld_v1_youngOld_4_2_', 'youngOld_v1_youngOld_5_2_',
+		'versions_v1_oneFuture_0_1_', 'versions_v1_oneFuture_1_1_', 'versions_v1_oneFuture_2_1_', 'versions_v1_oneFuture_3_1_', 'versions_v1_oneFuture_4_1_',
+		'versions_v1_oneFuture_5_1_', 'versions_v1_twoFutures_0_2_', 'versions_v1_twoFutures_1_2_', 'versions_v1_twoFutures_2_2_', 'versions_v1_twoFutures_3_2_', 
+		'versions_v1_twoFutures_4_2_', 'versions_v1_twoFutures_5_2_', 'v1_memory_association_oneFuture_0_1_', 'v1_memory_association_oneFuture_1_1_', 'v1_memory_association_oneFuture_2_1_',
+		'v1_memory_association_oneFuture_3_1_', 'v1_memory_association_oneFuture_4_1_', 'v1_memory_association_oneFuture_5_1_', 'v1_memory_association_oneFuture_0_2_',
+		'v1_memory_association_oneFuture_1_2_', 'v1_memory_association_oneFuture_2_2_', 'v1_memory_association_oneFuture_3_2_', 'v1_memory_association_oneFuture_4_2_', 
+		'v1_memory_association_oneFuture_5_2_', 'v1_memory_association_self_0_', 'v1_memory_association_self_1_', 'v1_memory_association_self_2_', 'v1_memory_association_self_3_', 
+		'v1_memory_association_self_4_', 'v1_memory_association_self_5_'];
+			
+		num_curr_conds = 12; //the number of conditions you are currently allocating between. Make sure these are listed at the BEGINNING of experimatrix
+
+   	    experimenturl = "https://scorsese.wjh.harvard.edu/turk/experiments/jdf/" + "e21_singleIdentity_perception_alternatives_easy/";
+
+		//*********************************** PARTS TO LEAVE UNTOUCHED *************************************3
+
+		experiment = 'singleIdentity_'; //name of the project of experiments for which you are performing exclusions. 
+
+		//define array for checking who has participated previously (names) and counting how many people have participated in each currently posted condition (length)
+		var condcounts = Array.from({ length: experimatrix.length }, () => ({ 'names': [], 'length': 0 }));
+		var assignmentId = [];
+  		var workerId = []; //to test: 'A35PRKC2COB0ZD'
+
+		//pull workerid and assignemnt id from the url, as soon as the page loads. 
+		$(document).ready(function(){
+			assignmentId = GetAssignmentId();
+    		workerId = GetWorkerId();
+
+			if (!IsOnTurk() && assignmentId == "NONE") {
+				assignmentId = prompt("Doesn't look like you are on Turk, so you're probably testing. Enter an ID to save your data with:", "assignmentId");
+			} else {
+				$("#check").show();
+			}
+		});		
+
+		function checkValue(val) {
+ 		  return val > -1;
+		}
+
+		function CheckOkay(Okay) {
+			if (Okay === true) {
+				console.log('Check fired');
+				minimumCondition = conditionTally.indexOf(Math.min.apply(Math,conditionTally.slice(0,num_curr_conds)));
+				console.log(minimumCondition);
+				experimenturl = experimenturl + experiment + experimatrix[minimumCondition] + ".html?workerId=" + workerId + "&assignmentId=" + assignmentId + "&turkSubmitTo=" + GetSubmitLocation();
+				$('#checkresult').text("You're all set. Feel free to accept and continue! (Scroll down for HIT description.)");
+				$('#eligibility').find(".panel").attr('class', 'panel panel-primary');
+				$('#corepoints').show();
+				// $('#checkButton').find(".panel").attr('disabled', 'true');
+			} else {
+				$('#checkresult').text("It appears you're ineligible. Thanks for your previous participation!");
+				$('#eligibility').find(".panel").attr('class', 'panel panel-danger');
+				$('#corepoints').show();
+				document.getElementById("linkpopover").disabled = true;
+			};
+		}
+
+		//count number of people who have taken part 
+		function DatabaseQuery(workerId) {
+			console.log(workerId);
+			//if (Manual == 1) workerId = $('#id').css('text-transform', 'uppercase').val();
+			$('#spinning').show();
+			var query_promises = experimatrix.map(function(ex, index) {
+			return $.getJSON('https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=' + experiment + ex)
+			//return $.getJSON('https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=' + experiment + ex)
+				.then(function(results) {
+				var args = Array.from(arguments);
+				condcounts[index]['length'] = args[0].length; //count number of workers who've done the experiment
+				 for (var i = 0; i < args[0].length; i++) {
+					condcounts[index]['names'].push(args[0][i].workerId); //push all workers who've done the experiment
+				 };
+				})
+			});
+
+			Promise.all(query_promises).then(function() {
+				conditionTally = condcounts.map(value => value.length);
+				condcounts.map(e => e.names.indexOf(workerId)).some(checkValue) ? CheckOkay(false) : CheckOkay(true);
+				$('#spinning').hide();
+			});
+		};
+
+		//Open new window with chosen condition
+		function OpenExperiment() {
+			window.location.replace(experimenturl);
+		}
+	
+		</script>
+
+		<style>
+
+			#check {
+				position: absolute;
+				font-weight: bold;
+				color: black;
+				font-size: 18px;
+				text-align: center;
+			    background: white;
+			    left: 25%;
+			    top: 60%;
+			    text-align: center;
+			}
+
+			#idchecker {
+				width: 90%;
+				margin-top: 10px;
+				margin-bottom: 10px;
+			}
+
+			#spinning {
+    			display: none;
+  			}
+
+			#corepoints {
+    			display: none;
+  			}			  
+
+		</style>
+	</head>
+	<body>
+
+	<div id="MainBody">
+			<h1 style="margin-bottom: 0px;">Welcome!</h1>
+		  
+			<div id="checkpointswrapper">
+			  <div class="panel-group" id="checkpoints">
+				<div id="browsercompatibility">
+				  <div class="panel panel-default">
+				  </div>
+				</div>
+		  
+				<div id="eligibility">
+				  <div class="panel panel-default">
+					<div class="panel-heading">
+					  <h4 class="panel-title"><a data-toggle="collapse" href="#collapseEligibility"><strong>Eligibility Check</strong> </a></h4>
+					</div>
+		  
+					<div class="panel-collapse collapse in" id="collapseEligibility">
+					  <div class="panel-body"><strong>Please Read Before Accepting : </strong> To start, please check if you are eligible for this study by typing your turk id below and clicking the button. 
+		  
+		  
+						<!-- <div class='container'> -->
+						<div class="input-group" id="idchecker">
+						  <span class="input-group-addon" id="basic-addon1">Worker ID: </span>
+						  <input class="form-control" id="id" placeholder="All Capitals | No Spaces | Example: A11O7LPUNSD4CD" type="text" />
+						  <span class="input-group-btn">
+							<button class="btn btn-default" id="CheckButton" type="button" onclick="DatabaseQuery(workerId)">Click to Check! &nbsp;
+							  <i id='spinning' class="fa fa-spinner fa-spin"></i>
+							</button>
+						  </span>
+						</div>
+		  
+						<div id="checkresult">&nbsp;</div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+		  
+			<div id="corepoints">
+			  <div class="panel-group">
+				<div class="panel panel-default">
+				</div>
+		  
+				<div class="panel panel-default">
+				  <div class="panel-heading">
+					<h4 class="panel-title"><a data-toggle="collapse" href="#collapseConsent"><strong>Consent to Participate in Research</strong> </a></h4>
+				  </div>
+		  
+				  <div class="panel-collapse collapse in" id="collapseConsent">
+						<div class="panel-body">By answering the following questions, you are participating in a study being performed by cognitive scientists in the Harvard University Psychology Department.
+							  The purpose of this research is to examine human visual performance. By participating you are confirming that you are over 18 years of age and have normal or corrected-to-normal
+							  vision.If you have questions about this research, or if you would like to receive a report of this research when it is completed please contact Julian De Freitas at
+							  <a href="mailto:defreitas@g.harvard.edu">defreitas@g.harvard.edu</a>. Your participation in this research is completely voluntary.  If you choose to participate, you may change your mind and leave the study at any time.
+							  Refusal to participate or stopping your participation will involve no penalty or loss of benefits to which you are otherwise entitled. You may decline to answer any or all of 
+							  the following questions. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you. For questions,
+							  concerns, or complaints that are not being addressed by the researcher, or research-related harm contact:  Committee on the Use of Human Subjects in Research at Harvard University,
+							  1414 Massachusetts Avenue, Second Floor, Cambridge, MA  02138. Phone: 617-496-CUHS (2847).  Email: cuhs@fas.harvard.edu<p></p>
+							  By continuing, you are confirming that you understand these instructions and conditions of participation.</div>
+				</div>
+		  
+				<div class="panel panel-default">
+				</div>
+			  </div>
+		  
+			  <div class="well" id="linkholder" style="width: 75%;">
+				<h3 style="margin-top: 5px;"></h3>
+				<button class="btn btn-lg btn-primary" data-toggle="popover" id="linkpopover" type="button" onclick="OpenExperiment()" >Start Experiment</button>
+		  
+				<div id="hitoblige">
+				  <p><i>You must first accept the HIT!</i></p>
+				</div>
+			  </div>
+			</div>
+	</div>
+
+	</body>
+</html>

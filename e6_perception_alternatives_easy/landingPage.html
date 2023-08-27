@@ -1,0 +1,385 @@
+
+<html>
+
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="https://scorsese.wjh.harvard.edu/turk/tools/TimTurkToolsPlus.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		<script src="js/sweetalert.min.js"></script>
+		<script src="js/sweetalert-master/dist/sweetalert.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="js/sweetalert-master/dist/sweetalert.css">
+
+		<script>
+
+	// This is the first page a subject sees, before being directed to one of seven conditions
+	// If subject has previously participated, throw a message, otherwise allocate to the condition with least no. of completed subjects
+	//Paste this code into the mturk url window
+
+			//should be as many of these as all conditions you have run for this project
+			names_one = [], names_two = [], names_three = [], names_four = [], names_five = [], names_six = [], names_seven = [], names_eight = [];
+			names_nine = [], names_ten = [], names_eleven = [], names_twelve = [], names_thirteen = [], names_fourteen = [], names_fifteen = [];
+			names_sixteen = [], names_seventeen = [], names_eighteen = [], names_nineteen = [], names_twenty = [], names_twentyOne = [], names_twentyTwo = [];
+			names_twentyThree = [], names_twentyFour = [], names_twentyFive = [], names_twentySix = [], names_twentySeven = [], names_twentyEight = [];
+			names_twentyNine = [], names_thirty = [], names_thirtyOne = [], names_thirtyTwo = [], names_thirtyThree = [], names_thirtyFour = [];
+			names_thirtyFive = [], names_thirtySix = [], names_thirtySeven = [], names_thirtyEight = [], names_thirtyNine = [], names_forty = [];
+			names_fortyOne = [], names_fortyTwo = [];
+
+			//should be as many of these as the number of conditions in your current experiment
+			length_one = [], length_two = [], length_three = [], length_four = [], length_five = [], length_six = [];
+			length_seven = [], length_eight = [], length_nine = [], length_ten = [], length_eleven = [], length_twelve = [];
+
+			//the names of your html files for each condition
+			expMat = ["young_0", "young_1", "young_2", "young_3", "young_4", "young_5", 
+					  "youngOld_0", "youngOld_1", "youngOld_2", "youngOld_3", "youngOld_4", "youngOld_5"];
+
+			dir = "https://scorsese.wjh.harvard.edu/turk/experiments/jdf/" + "e9_singleIdentity_perception_youngOld/";
+
+			$(document).ready(function(){
+
+					workerId = gup('workerId'); //for piloting, just make worke3rId = any initial, e.g. "xyz"
+					console.log("worker id is " + workerId);
+					assignmentId = gup('assignmentId');
+					console.log("assignment id is " + assignmentId);
+
+					if (!IsOnTurk() && assignmentId == "NONE") {
+					  		assignmentId = prompt("Doesn't look like you are on Turk, so you're probably testing. Enter an ID to save your data with:", "assignmentId");
+						} else if (assignmentId == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+							console.log("got here");
+							//$("a.startexperimentbutton").show();
+							$("[data-toggle='tooltip']").tooltip();
+						} else {
+							$("a.startexperimentbutton").show();
+							$("#check").show();
+							//$("a.startexperimentbutton").removeClass('disabled');
+							$("[data-toggle='tooltip']").tooltip('destroy');
+						}
+			    	});
+
+					function SaveStuff() {
+						turkerCheckId = $('#turkerId').val();
+						var checking = 1;
+						Start(turkerCheckId,checking);
+					}
+
+
+			function Start(workerId,checking) {
+
+						$.when(
+							//get these names from the entries in the sequel database that occur when you run the experiment. ADD LATEST EXPERIMENT TO THE TOP, SO that it corresponds with d1, d2, etc. 
+							
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_young_0_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_young_1_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_young_2_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_young_3_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_young_4_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_young_5_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_youngOld_0_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_youngOld_1_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_youngOld_2_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_youngOld_3_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_youngOld_4_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_youngOld_v1_youngOld_5_2_"),
+							
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_oneFuture_0_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_oneFuture_1_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_oneFuture_2_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_oneFuture_3_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_oneFuture_4_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_oneFuture_5_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_twoFutures_0_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_twoFutures_1_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_twoFutures_2_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_twoFutures_3_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_twoFutures_4_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_versions_v1_twoFutures_5_2_"),
+
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_0_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_1_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_2_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_3_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_4_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_5_1_"),
+
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_0_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_1_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_2_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_3_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_4_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_oneFuture_5_2_"),
+
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_self_0_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_self_1_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_self_2_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_self_3_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_self_4_"),
+							$.getJSON( "https://scorsese.wjh.harvard.edu/turk/tools/getSubjects.php?experimenter=jdf&experiment=singleIdentity_v1_memory_association_self_5_")
+							)
+
+							.then(function(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19,d20,d21,d22,d23,d24,d25,d26,d27,d28,d29,d30,d31,d32,d33,d34,d35,d36,d37,d38,d39,d40,d41,d42) {
+
+								for (var i= 0; i<d1[0].length; i++) {
+									 names_one.push(d1[0][i].workerId);
+									 length_one.push(d1.length);
+								};
+								for (var i= 0; i<d2[0].length; i++) {
+									 names_two.push(d2[0][i].workerId);
+									 length_two.push(d2.length);
+								};
+								for (var i= 0; i<d3[0].length; i++) {
+									 names_three.push(d3[0][i].workerId);
+									 length_three.push(d3.length);
+								};
+								for (var i= 0; i<d4[0].length; i++) {
+									 names_four.push(d4[0][i].workerId);
+									 length_four.push(d4.length);
+								};
+								for (var i= 0; i<d5[0].length; i++) {
+									 names_five.push(d5[0][i].workerId);
+									 length_five.push(d5.length);
+								};
+								for (var i= 0; i<d6[0].length; i++) {
+									 names_six.push(d6[0][i].workerId);
+									 length_six.push(d6.length);
+								};
+								for (var i= 0; i<d7[0].length; i++) {
+									 names_seven.push(d7[0][i].workerId);
+									 length_seven.push(d7.length);
+								};
+								for (var i= 0; i<d8[0].length; i++) {
+									 names_eight.push(d8[0][i].workerId);
+									 length_eight.push(d8.length);
+								};
+								for (var i= 0; i<d9[0].length; i++) {
+									 names_nine.push(d9[0][i].workerId);
+									 length_nine.push(d9.length);
+								};
+								for (var i= 0; i<d10[0].length; i++) {
+									 names_ten.push(d10[0][i].workerId);
+									 length_ten.push(d10.length);
+								};
+								for (var i= 0; i<d11[0].length; i++) {
+									 names_eleven.push(d11[0][i].workerId);
+									 length_eleven.push(d11.length);
+								};
+								for (var i= 0; i<d12[0].length; i++) {
+									 names_twelve.push(d12[0][i].workerId);
+									 length_twelve.push(d12.length);
+								};
+								for (var i= 0; i<d13[0].length; i++) {
+									 names_thirteen.push(d13[0][i].workerId);
+								};
+								for (var i= 0; i<d14[0].length; i++) {
+									 names_fourteen.push(d14[0][i].workerId);
+								};
+								for (var i= 0; i<d15[0].length; i++) {
+									 names_fifteen.push(d15[0][i].workerId);
+								};
+								for (var i= 0; i<d16[0].length; i++) {
+									 names_sixteen.push(d16[0][i].workerId);
+								};
+								for (var i= 0; i<d17[0].length; i++) {
+									 names_seventeen.push(d17[0][i].workerId);
+								};
+								for (var i= 0; i<d18[0].length; i++) {
+									 names_eighteen.push(d18[0][i].workerId);
+								};
+								for (var i= 0; i<d19[0].length; i++) {
+									 names_nineteen.push(d19[0][i].workerId);
+								};
+								for (var i= 0; i<d20[0].length; i++) {
+									 names_twenty.push(d20[0][i].workerId);
+								};
+								for (var i= 0; i<d21[0].length; i++) {
+									 names_twentyOne.push(d21[0][i].workerId);
+								};
+								for (var i= 0; i<d22[0].length; i++) {
+									 names_twentyTwo.push(d22[0][i].workerId);
+								};
+								for (var i= 0; i<d23[0].length; i++) {
+									 names_twentyThree.push(d23[0][i].workerId);
+								};
+								for (var i= 0; i<d24[0].length; i++) {
+									 names_twentyFour.push(d24[0][i].workerId);
+								};
+								for (var i= 0; i<d25[0].length; i++) {
+									 names_twentyFive.push(d25[0][i].workerId);
+								};
+								for (var i= 0; i<d26[0].length; i++) {
+									 names_twentySix.push(d26[0][i].workerId);
+								};
+								for (var i= 0; i<d27[0].length; i++) {
+									 names_twentySeven.push(d27[0][i].workerId);
+								};
+								for (var i= 0; i<d28[0].length; i++) {
+									 names_twentyEight.push(d28[0][i].workerId);
+								};
+								for (var i= 0; i<d29[0].length; i++) {
+									 names_twentyNine.push(d29[0][i].workerId);
+								};
+								for (var i= 0; i<d30[0].length; i++) {
+									 names_thirty.push(d30[0][i].workerId);
+								};
+								for (var i= 0; i<d31[0].length; i++) {
+									 names_thirtyOne.push(d31[0][i].workerId);
+								};
+								for (var i= 0; i<d32[0].length; i++) {
+									 names_thirtyTwo.push(d32[0][i].workerId);
+								};
+								for (var i= 0; i<d33[0].length; i++) {
+									 names_thirtyThree.push(d33[0][i].workerId);
+								};
+								for (var i= 0; i<d34[0].length; i++) {
+									 names_thirtyFour.push(d34[0][i].workerId);
+								};
+								for (var i= 0; i<d35[0].length; i++) {
+									 names_thirtyFive.push(d35[0][i].workerId);
+								};
+								for (var i= 0; i<d36[0].length; i++) {
+									 names_thirtySix.push(d36[0][i].workerId);
+								};
+								for (var i= 0; i<d37[0].length; i++) {
+									 names_thirtySeven.push(d37[0][i].workerId);
+								};
+								for (var i= 0; i<d38[0].length; i++) {
+									 names_thirtyEight.push(d38[0][i].workerId);
+								};
+								for (var i= 0; i<d39[0].length; i++) {
+									 names_thirtyNine.push(d39[0][i].workerId);
+								};
+								for (var i= 0; i<d40[0].length; i++) {
+									 names_forty.push(d40[0][i].workerId);
+								};
+								for (var i= 0; i<d41[0].length; i++) {
+									 names_fortyOne.push(d41[0][i].workerId);
+								};
+								for (var i= 0; i<d42[0].length; i++) {
+									 names_fortyTwo.push(d42[0][i].workerId);
+								};
+								expTally = [length_one['length'], length_two['length'], length_three['length'], length_four['length'], length_five['length'], length_six['length'],
+											length_seven['length'], length_eight['length'], length_nine['length'], length_ten['length'], length_eleven['length'], length_twelve['length']];	//should only have as many of these as different conditions CURRENTLY BEING RUN
+
+								if(checking == 1) {
+									console.log("got here");
+									InitialCheck(workerId);
+									checking = 0;
+								}
+								else {
+								 	CheckId();
+								}
+							})
+						  if(checking != 1) {
+								$('#question').show();
+							}
+			};
+
+			function InitialCheck(workerId) {
+				console.log("workerId is", workerId);
+				if(names_one.indexOf(workerId) > -1 || names_two.indexOf(workerId) > -1 || names_three.indexOf(workerId) > -1 || names_four.indexOf(workerId) > -1 ||
+				 names_five.indexOf(workerId) > -1 || names_six.indexOf(workerId) > -1 || names_seven.indexOf(workerId) > -1 || names_eight.indexOf(workerId) > -1
+				 || names_nine.indexOf(workerId) > -1 || names_ten.indexOf(workerId) > -1 || names_eleven.indexOf(workerId) > -1
+				 || names_twelve.indexOf(workerId) > -1 || names_thirteen.indexOf(workerId) > -1 || names_fourteen.indexOf(workerId) > -1 
+				 || names_fifteen.indexOf(workerId) > -1 || names_sixteen.indexOf(workerId) > -1 || names_seventeen.indexOf(workerId) > -1 
+				 || names_eighteen.indexOf(workerId) > -1 || names_nineteen.indexOf(workerId) > -1 || names_twenty.indexOf(workerId) > -1
+				 || names_twentyOne.indexOf(workerId) > -1 || names_twentyTwo.indexOf(workerId) > -1 || names_twentyThree.indexOf(workerId) > -1
+				 || names_twentyFour.indexOf(workerId) > -1 || names_twentyFive.indexOf(workerId) > -1 || names_twentySix.indexOf(workerId) > -1
+				 || names_twentySeven.indexOf(workerId) > -1 || names_twentyEight.indexOf(workerId) > -1 || names_twentyNine.indexOf(workerId) > -1
+				 || names_thirty.indexOf(workerId) > -1 || names_thirtyOne.indexOf(workerId) > -1 || names_thirtyTwo.indexOf(workerId) > -1 || names_thirtyThree.indexOf(workerId) > -1
+				 || names_thirtyFour.indexOf(workerId) > -1 || names_thirtyFive.indexOf(workerId) > -1 || names_thirtySix.indexOf(workerId) > -1 || names_thirtySeven.indexOf(workerId) > -1
+				 || names_thirtyEight.indexOf(workerId) > -1 || names_thirtyNine.indexOf(workerId) > -1 || names_forty.indexOf(workerId) > -1 
+				 || names_fortyOne.indexOf(workerId) > -1 || names_fortyTwo.indexOf(workerId) > -1)  {
+					swal("Sorry, you've already taken part. Thanks for your previous participation!");
+				} else {
+					swal("You're good to participate!");
+				}
+			}
+
+			function CheckId() {
+				if(names_one.indexOf(workerId) > -1 || names_two.indexOf(workerId) > -1 || names_three.indexOf(workerId) > -1 || names_four.indexOf(workerId) > -1 ||
+				 names_five.indexOf(workerId) > -1 || names_six.indexOf(workerId) > -1 || names_seven.indexOf(workerId) > -1 || names_eight.indexOf(workerId) > -1
+				 || names_nine.indexOf(workerId) > -1 || names_ten.indexOf(workerId) > -1 || names_eleven.indexOf(workerId) > -1
+				 || names_twelve.indexOf(workerId) > -1 || names_thirteen.indexOf(workerId) > -1 || names_fourteen.indexOf(workerId) > -1 
+				 || names_fifteen.indexOf(workerId) > -1 || names_sixteen.indexOf(workerId) > -1 || names_seventeen.indexOf(workerId) > -1 
+				 || names_eighteen.indexOf(workerId) > -1 || names_nineteen.indexOf(workerId) > -1 || names_twenty.indexOf(workerId) > -1
+				 || names_twentyOne.indexOf(workerId) > -1 || names_twentyTwo.indexOf(workerId) > -1 || names_twentyThree.indexOf(workerId) > -1
+				 || names_twentyFour.indexOf(workerId) > -1 || names_twentyFive.indexOf(workerId) > -1 || names_twentySix.indexOf(workerId) > -1
+				 || names_twentySeven.indexOf(workerId) > -1 || names_twentyEight.indexOf(workerId) > -1 || names_twentyNine.indexOf(workerId) > -1
+				 || names_thirty.indexOf(workerId) > -1 || names_thirtyOne.indexOf(workerId) > -1 || names_thirtyTwo.indexOf(workerId) > -1 || names_thirtyThree.indexOf(workerId) > -1
+				 || names_thirtyFour.indexOf(workerId) > -1 || names_thirtyFive.indexOf(workerId) > -1 || names_thirtySix.indexOf(workerId) > -1 || names_thirtySeven.indexOf(workerId) > -1
+				 || names_thirtyEight.indexOf(workerId) > -1 || names_thirtyNine.indexOf(workerId) > -1 || names_forty.indexOf(workerId) > -1 
+				 || names_fortyOne.indexOf(workerId) > -1 || names_fortyTwo.indexOf(workerId) > -1)  {
+					swal("Sorry, you've already taken part. Thanks for your previous participation!");
+				} else {
+					minTally = Math.min.apply(Math,expTally);
+					minExp = expTally.indexOf(minTally);
+					window.location.replace(dir + expMat[minExp] + ".html?workerId=" + workerId + "&assignmentId=" + assignmentId + "&turkSubmitTo=" + GetSubmitLocation());
+				}
+			}
+
+			function gup( name )
+				{
+				  name = name.replace(/[\[]/,"\[").replace(/[\]]/,"\]");
+				  var regexS = "[\?&]"+name+"=([^&#]*)";
+				  var regex = new RegExp( regexS );
+				  var param = regex.exec( window.location.href );
+				  if( param == null )
+				    return "";
+				  else
+				    return param[1];
+				}
+
+		</script>
+
+		<style>
+
+			#question {
+				position: absolute;
+				font-weight: bold;
+				color: green;
+				font-size: 18px;
+				text-align: center;
+			    background: black;
+			    left: 42%;
+			    top: 50%;
+			    text-align: center;
+			}
+
+			a.startExperimentButton {
+				display: none;
+			}
+
+			#check {
+				position: absolute;
+				font-weight: bold;
+				color: black;
+				font-size: 18px;
+				text-align: center;
+			    background: white;
+			    left: 25%;
+			    top: 60%;
+			    text-align: center;
+			}
+
+			.startExperimentButton {
+				color: red;
+			}
+
+		</style>
+	</head>
+	<body>
+
+	<div id = "question" class = "firstQuestion" onclick = "Start()">
+		<!--<p><input valign="center" left: 50% type="button" onclick="Start();" value="Click to Start Experiment (Don't forget to accept the hit first!)"  /></p> -->
+
+		<div class="submitButtonTooltip" data-toggle='tooltip' data-placement='bottom' title='please accept the hit first'>
+		<p style='text-align: center'><a href='javascript:Start()' class='startExperimentButton'>Start Experiment</a></p>
+ 		</div>
+ 	</div>
+
+ 	<div id="check">
+ 		<p>If you're not sure whether you've participated before, copy and paste your mturk id here and click 'check id'.<p>
+ 		<textarea id="turkerId" rows="4" cols="50"></textarea>
+		<p style='text-align: center'><a href='javascript:SaveStuff()' class='checkIdButton'>Check id</a></p>
+    </div>
+
+	</body>
+</html>
