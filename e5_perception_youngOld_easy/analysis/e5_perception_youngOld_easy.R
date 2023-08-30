@@ -28,7 +28,8 @@ if (!require(ggsignif)) {install.packages("ggsignif"); require(ggsignif)}
 ##================================================================================================================
 
 ## set directory to data folder
-dir <- setwd("/Users/julian/Documents/github/juliandefreitas/self/limited_self_reference/e5_perception_youngOld_easy/data")
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #set working directory to current directory
+setwd("../data/")
 
 datalist = list()
 #import data using jsonlite [automate this, by defining list of data frames]
@@ -212,19 +213,11 @@ for(i in 1:length(workers)) {
     fa <- length(acc_use[worker==workers[i] & agentCond_n==j & ans=='y' & corrAns=='n'])/length_fa
     rt <- mean(rts[worker==workers[i] & agentCond_n==j & acc_use==1], na.rm=TRUE)
     
-    #correction for if h=1 or fa=0, by (Macmillan & Kaplan, 1985)
-    #if fa = 0, 0.5/𝑛; ifh= 1, (𝑛−0.5)/𝑛 , where n is the number of signal or noise trials
     #see https://stats.stackexchange.com/questions/134779/d-prime-with-100-hit-rate-probability-and-0-false-alarm-probability
-    if(h==1) {
-      h <- (length_h-0.5)/length_h
-    }
-    
-    if(fa==0) {
-      fa <- 0.05/length_fa
-    }
-    if(h==0) {
-      h <- 0.05/length_fa
-    }
+    if(h==1) { h <- (length_h - 0.5) / length_h }
+    if(h==0) { h <- 0.5 / length_h }
+    if(fa==1) { fa <- (length_fa - 0.5) / length_fa }
+    if(fa==0) { fa <- 0.5 / length_fa }
     
     d.mat[counter,] <- c(workers[i],unique(condNum[worker==workers[i]]), j, h, fa, qnorm(h) - qnorm(fa), rt)
     counter = counter + 1
@@ -238,7 +231,7 @@ perf.mat <- as.data.frame(perf_mat, stringsAsFactors=FALSE); perf.mat
 
 for(i in 1:length(workers)) {
   perf.mat[i,1] <- unique(d.mat$mainCond[d.mat$worker==i])
-  if(unique(d.mat$mainCond[d.mat$worker==i]) == 1) {
+  if(unique(d.mat$mainCond[d.mat$worker==i]) %in% c(1, 2)) {
     #future-you1 - john
     perf.mat[i,2] <- d.mat$d[d.mat$worker==i & d.mat$agentCond == 1] - d.mat$d[d.mat$worker==i & d.mat$agentCond == 2] 
   }
@@ -305,7 +298,7 @@ tes(as.numeric(att_3_o[1]), n_o_2, n_o_3) #cohen's d
 d_oneAlt <- subset(d.mat, d.mat$mainCond==2)
 
 mean(d_oneAlt$d[d_oneAlt$agentCond==1]) #future-you2
-sd(d_onAlt$d[d_oneAlt$agentCond==1])
+sd(d_oneAlt$d[d_oneAlt$agentCond==1])
 n_o_1 = length(d_oneAlt$d[d_oneAlt$agentCond==1]); n_o_1
 
 mean(d_oneAlt$d[d_oneAlt$agentCond==2]) #stranger-john
@@ -361,10 +354,28 @@ sd(perf.mat$total_perf[perf.mat$mainCond == 3])
 perf_1 <- t.test(perf.mat$total_perf[perf.mat$mainCond == 1 | perf.mat$mainCond == 3] ~ perf.mat$mainCond[perf.mat$mainCond == 1 | perf.mat$mainCond == 3], var.equal=TRUE, paired=FALSE); perf_1
 perf_2 <- t.test(perf.mat$total_perf[perf.mat$mainCond == 2 | perf.mat$mainCond == 3] ~ perf.mat$mainCond[perf.mat$mainCond == 2 | perf.mat$mainCond == 3], var.equal=TRUE, paired=FALSE); perf_2
 
+tes(as.numeric(perf_1[1]), length(workers), length(workers)) #cohen's d
+tes(as.numeric(perf_2[1]), length(workers), length(workers)) #cohen's d
+
+#------- PERFORMANCE DIFF --------#
+mean(perf.mat$perf_diff[perf.mat$mainCond == 1])
+sd(perf.mat$perf_diff[perf.mat$mainCond == 1])
+
+mean(perf.mat$perf_diff[perf.mat$mainCond == 2])
+sd(perf.mat$perf_diff[perf.mat$mainCond == 2])
+
+mean(perf.mat$perf_diff[perf.mat$mainCond == 3])
+sd(perf.mat$perf_diff[perf.mat$mainCond == 3])
+
+perfd_1 <- t.test(perf.mat$perf_diff[perf.mat$mainCond == 1 | perf.mat$mainCond == 3] ~ perf.mat$mainCond[perf.mat$mainCond == 1 | perf.mat$mainCond == 3], var.equal=TRUE, paired=FALSE); perfd_1
+perfd_2 <- t.test(perf.mat$perf_diff[perf.mat$mainCond == 2 | perf.mat$mainCond == 3] ~ perf.mat$mainCond[perf.mat$mainCond == 2 | perf.mat$mainCond == 3], var.equal=TRUE, paired=FALSE); perfd_2
+
+tes(as.numeric(perfd_1[1]), length(workers), length(workers)) #cohen's d
+tes(as.numeric(perfd_2[1]), length(workers), length(workers)) #cohen's d
+
+
 #***mean performance, for norming plot
 ((mean(perf.mat$total_perf[perf.mat$mainCond == 3]) - mean(perf.mat$total_perf[perf.mat$mainCond == 1])) + (mean(perf.mat$total_perf[perf.mat$mainCond == 3]) - mean(perf.mat$total_perf[perf.mat$mainCond == 2])))/2 
-
-#tes(as.numeric(perf_1[1]), length(workers), length(workers)) #cohen's d
 
 p_mat <- c(att_1_o[3], att_1_alt[3], att_1_b[3], perf_1[3], perf_2[3])
 for(i in 1:length(p_mat)) {
@@ -429,7 +440,7 @@ for(i in 1:length(unique(agentCond_n))) {
   d_mat_plot_alt[i, 5] <- d_mat_plot_alt[i,3]/sqrt(d_mat_plot_alt[i,4])
 }
 d_mat_plot_alt
-d.oneAlt <- as.data.frame(d_mat_plot_alt, stringsAsFactors=FALSE); d.alt
+d.oneAlt <- as.data.frame(d_mat_plot_alt, stringsAsFactors=FALSE); d.oneAlt
 
 
 #make d mat for plotting: condition 2
@@ -468,24 +479,23 @@ p1.11<-ggplot(d.one,aes(x=factor(cond),y=mean,fill=factor(cond))) +
   theme(axis.title.x = element_blank()) + 
   theme(legend.title = element_blank())+
   theme(axis.ticks.x = element_blank())+
-  theme(axis.ticks.y = element_blank())+
   theme_classic()
 
-p1.111<-p1.11+scale_fill_discrete(name = "", labels = c ("Young\nYou", "Stranger\nJohn", "Stranger\nBill")) +
+p1.111<-p1.11+scale_fill_discrete(name = "", labels = c ("True\nYou", "Stranger\nJohn", "Stranger\nBill")) +
   xlab ("") + ylab ("") +
-  theme(legend.text = element_text(size = "16",face = "plain")) +
-  geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge")+
+  theme(legend.text = element_text(size = "16", face = "plain")) +
+  geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge", size=1.5)+
   geom_signif(data=d.one,
-              aes(xmin=1, xmax=2, annotations=star_mat[1], y_position=3.3),
-              textsize = 8, vjust = 0.3,
-              manual=TRUE) +
-  ggtitle ("Self #1") +
+              aes(xmin=1, xmax=2, annotations=star_mat[1], y_position=3.2),
+              textsize = 12, vjust = 0.3,
+              manual=TRUE, size=1.5) +
+  #ggtitle ("Self #1") +
   theme(plot.title = element_text(hjust = 0.5)) + 
   theme(plot.title = element_text(size = 26))
 
 p1.1111<-p1.111+ theme(axis.text.x = element_blank())+
   theme(axis.ticks.x = element_blank())+
-  theme(axis.text.y = element_text(size = 24))
+  theme(axis.line = element_line(colour = '#585858', size = 1.5), axis.text.y = element_text(size = 26), axis.ticks.length=unit(.25, "cm"), axis.ticks = element_line(colour = "black", size = 1.5)) + scale_fill_manual(values=c("#802520", "#78a973", "#3e70bd"))
 
 
 #identified with future2
@@ -494,52 +504,50 @@ p1.12<-ggplot(d.oneAlt,aes(x=factor(cond),y=mean,fill=factor(cond))) +
   coord_cartesian(ylim=c(0, 4))+
   theme(axis.title.y = element_blank()) + 
   theme(axis.title.x = element_blank()) + 
-  theme(legend.title = element_blank())+
-  theme(axis.ticks.x = element_blank())+
-  theme(axis.ticks.y = element_blank())+
+  theme(legend.title = element_blank()) +
+  theme(axis.ticks.x = element_blank()) +
   theme_classic()
 
-p1.112<-p1.12+scale_fill_discrete(name = "", labels = c ("Old\nYou", "Stranger\nJohn", "Stranger\nBill")) +
+p1.112<-p1.12+scale_fill_discrete(name = "", labels = c ("Surface\nYou", "Stranger\nJohn", "Stranger\nBill")) +
   xlab ("") + ylab ("") +
-  theme(legend.text = element_text(size = "16",face = "plain")) +
-  geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge")+
+  theme(legend.text = element_text(size = "16", face = "plain")) +
+  geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge", size=1.5)+
   geom_signif(data=d.one,
-              aes(xmin=1, xmax=2, annotations=star_mat[2], y_position=2.6),
-              textsize = 8, vjust = 0.3,
-              manual=TRUE) +
-  ggtitle ("Self #2") +
+              aes(xmin=1, xmax=2, annotations=star_mat[2], y_position=3.2),
+              textsize = 12, vjust = 0.3,
+              manual=TRUE, size=1.5) +
+  #ggtitle ("Self #2") +
   theme(plot.title = element_text(hjust = 0.5)) + 
   theme(plot.title = element_text(size = 26))
 
 p1.1112<-p1.112+ theme(axis.text.x = element_blank())+
-  theme(axis.ticks.x = element_blank())+
-  theme(axis.text.y = element_text(size = 24))
+  theme(axis.ticks.x = element_blank()) +
+  theme(axis.line = element_line(colour = '#585858', size = 1.5), axis.text.y = element_blank(), axis.ticks.length=unit(.25, "cm"), axis.ticks = element_line(colour = "black", size = 1.5)) + scale_fill_manual(values=c("#d95b5f", "#78a973", "#3e70bd"))
 
-#identified with both
 p1.14<-ggplot(d.two,aes(x=factor(cond),y=mean,fill=factor(cond))) +  
   stat_summary(fun.y=mean,position=position_dodge(),geom="bar",face="bold")+
   coord_cartesian(ylim=c(0, 4))+
   theme(axis.title.y = element_blank()) + 
   theme(axis.title.x = element_blank()) + 
-  theme(legend.title = element_blank())+
-  theme(axis.ticks.x = element_blank())+
-  theme(axis.ticks.y = element_blank())+
+  theme(legend.title = element_blank()) +
+  theme(axis.ticks.x = element_blank()) +
   theme_classic()
-p1.114<-p1.14+scale_fill_discrete(name = "", labels = c ("Young\nYou", "Old\nYou", "Stranger\nJohn")) +
+
+p1.114<-p1.14+scale_fill_discrete(name = "", labels = c ("True\nYou", "Surface\nYou", "Stranger\nJohn")) +
   xlab ("") + ylab ("") +
-  theme(legend.text = element_text(size = "16",face = "plain")) +
-  geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge")+
+  theme(legend.text = element_text(size = "16", face = "plain")) +
+  geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge", size=1.5)+
   geom_signif(data=d.two,
-              aes(xmin=1, xmax=2, annotations=star_mat[3], y_position=2.3),
-              textsize = 6, vjust = -0.4,
-              manual=TRUE) +
-  ggtitle ("Two Selves") +
+              aes(xmin=1, xmax=2, annotations=star_mat[3], y_position=3.2),
+              textsize = 12, vjust = -0.4,
+              manual=TRUE, size=1.5) +
+  #ggtitle ("Two Selves") +
   theme(plot.title = element_text(hjust = 0.5)) + 
   theme(plot.title = element_text(size = 26))
+
 p1.1114<-p1.114+theme(axis.text.x = element_blank())+
   theme(axis.ticks.x = element_blank())+
-  theme(axis.text.y = element_blank())+
-  theme(axis.ticks.y = element_blank())
+  theme(axis.line = element_line(colour = '#585858', size = 1.5), axis.text.y = element_blank(), axis.ticks.length=unit(.25, "cm"), axis.ticks = element_line(colour = "black", size = 1.5)) + scale_fill_manual(values=c("#802520", "#d95b5f", "#78a973"))
 
 #total performance
 p1.15<-ggplot(perf_mat_plot,aes(x=factor(cond),y=mean)) +  
@@ -549,52 +557,35 @@ p1.15<-ggplot(perf_mat_plot,aes(x=factor(cond),y=mean)) +
   theme(axis.title.x = element_blank()) + 
   theme(legend.title = element_blank())+
   theme(axis.ticks.x = element_blank())+
-  theme(axis.ticks.y = element_blank())+
   theme_classic()
 
 p1.115<-p1.15+scale_fill_discrete(name = "", labels = c ("Original", "Copy", "Stranger")) +
   xlab ("") + ylab ("") +
-  geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge")+
+  geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge", size=1.5)+
   geom_signif(data=perf_mat_plot,
               aes(xmin=1, xmax=3, annotations=star_mat[4], y_position=7.9),
-              textsize = 8, vjust = 0.3,
-              manual=TRUE) +
+              textsize = 12, vjust = -0.4,
+              manual=TRUE, size=1.5) +
   geom_signif(data=perf_mat_plot,
-              aes(xmin=2, xmax=3, annotations=star_mat[5], y_position=7.0),
-              textsize = 6, vjust = -0.4,
-              manual=TRUE) +
-  ggtitle ("Total Performance:\n One Self v. Two Selves") +
+              aes(xmin=2, xmax=3, annotations=star_mat[5], y_position=6.3),
+              textsize = 12, vjust = -0.4,
+              manual=TRUE, size=1.5) +
+  #ggtitle ("Total Performance:\n One Self v. Two Selves") +
   theme(plot.title = element_text(hjust = 0.5)) + 
   theme(plot.title = element_text(size = 22))+
-  theme(axis.text.y = element_text(size = 24))
+  theme(axis.text.y = element_text(size = 26))
 
 p1.1115<-p1.115+ theme(axis.text.x = element_blank())+
-  theme(axis.ticks.x = element_blank())
+  theme(axis.line = element_line(colour = '#585858', size = 1.5), axis.ticks.x = element_blank(), axis.ticks.length=unit(.25, "cm"), axis.ticks = element_line(colour = "black", size = 1.5))
 
 quartz()
-figure<-ggarrange(p1.1111,p1.1112, p1.1114,p1.1115, nrow=1,ncol=4,common.legend = FALSE, legend="top", vjust = -1.0) 
-annotate_figure(figure,top = text_grob("Experiment 5: Distinct Past and Future Selves", face = "bold", size = 27),
-                left = text_grob("d' Performance", color="black", face ="plain",size=27, rot=90)) 
-##================================================================================================================
-##END##
-##================================================================================================================
+figure<-ggarrange(p1.1111, p1.1112, p1.1114, p1.1115, nrow=1,ncol=4,common.legend = FALSE, legend="none", vjust = -1.0) 
+
+png("../fig1.png", width = 8640 * 2.5/6, height = 2590 * 2.5/6, res=300)
+figure
+dev.off()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+##=====##
+## END ##
+##=====##
