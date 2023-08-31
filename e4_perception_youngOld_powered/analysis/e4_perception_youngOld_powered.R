@@ -89,15 +89,22 @@ trial_thresh <- 0.5
 ss_excl_mat <- array(0,dim=c(length(workers),2))
 colnames(ss_excl_mat) <- c('mean_acc', 'rt_err_prop')
 
+
+perf_exc <- 0
+trial_exc <- 0
 #if their accuracy < 55% or total bad RTs > 50% of trials, exclude them from dataset
 for(i in 1:length(workers)) {
   ss_excl_mat[i,1] <- c(mean(acc_use[worker==workers[i]])) #get accuracy for each worker
   ss_excl_mat[i,2] <- sum(data$badRt[data$workerId == workers[i]])/length(data$rt[data$workerId == workers[i]])
   if( (ss_excl_mat[i,1] < perf_thresh) | (ss_excl_mat[i,2] > trial_thresh) ) {
+    if((ss_excl_mat[i,2] > trial_thresh)) {trial_exc <- trial_exc + 1} else {perf_exc <- perf_exc + 1}
     data <- subset(data,data$workerId != workers[i]) 
   }
 }
-ss_excl_mat
+
+#ss_excl_mat
+print(paste0("Exclusions from main performance: ", perf_exc, ". Exclusions from trial: ", trial_exc))
+
 
 #check it worked
 worker <- as.factor(data$workerId)

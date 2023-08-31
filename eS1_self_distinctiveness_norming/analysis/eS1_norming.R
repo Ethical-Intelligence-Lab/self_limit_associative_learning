@@ -20,36 +20,43 @@ library(ggrepel)
 
 ##================ import data ================================================================================================
 
-dir <- setwd("/Users/julian/Documents/github/juliandefreitas/self/limited_self_reference/eS1_self_distinctiveness_norming/data")
+## set directory to data folder
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #set working directory to current directory
+setwd("../data/")
 
+datalist = list()
+#import data using jsonlite [automate this, by defining list of data frames]
 files <- list.files(pattern=('*txt'))
-myJSON <- lapply(files, function(x) fromJSON(file=x)) #join into one single JSON file
-(data <- lapply(myJSON, function(myJSON) { as.data.frame(myJSON) }))
-data <- (data <- do.call(rbind, data))
+for (i in 1:length(files)) {
+  curData <- fromJSON(files[i], simplifyDataFrame = TRUE)
+  datalist[[i]] <- curData$trialStruct
+}
 
-dim(data) 
+data = do.call(rbind, datalist)
+head(data)
+dim(data)
 
 ##======================== counts and exclusions =============================================================================
 
 #exclude those who failed attention check
-data <- subset(data, (data$trialStruct.attention==0) &
-                 (data$trialStruct.comp_imagine==2) &
-                 (data$trialStruct.comp_num_versions==3))
+data <- subset(data, (data$attention==0) &
+                 (data$comp_imagine==2) &
+                 (data$comp_num_versions==3))
 
 dim(data)
 
-age <- data$trialStruct.age[data$trialStruct.age %in% 1:100] #ignore folks who said they're 0 yrs old
+age <- data$age[data$age %in% 1:100] #ignore folks who said they're 0 yrs old
 mean(age,na.rm = TRUE) 
-gender <- as.factor(data$trialStruct.sex); table(gender)[2]/sum(table(gender)) 
+gender <- as.factor(data$sex); table(gender)[2]/sum(table(gender)) 
 
 ##======================== prep data for analysis ================================================================================
 
-q1 <- as.numeric(data$trialStruct.q2_futures)
-q2 <- as.numeric(data$trialStruct.q3_20young_20old)
-q3 <- as.numeric(data$trialStruct.q4_true_surface)
-q4 <- as.numeric(data$trialStruct.q3_20young_20old)
-q5 <- as.numeric(data$trialStruct.q6_18young_60old)
-q6 <- as.numeric(data$trialStruct.q8_healthy_unhealthy)
+q1 <- as.numeric(data$q2_futures)
+q2 <- as.numeric(data$q3_20young_20old)
+q3 <- as.numeric(data$q4_true_surface)
+q4 <- as.numeric(data$q3_20young_20old)
+q5 <- as.numeric(data$q6_18young_60old)
+q6 <- as.numeric(data$q8_healthy_unhealthy)
 
 similarities <- c(mean(q1, na.rm = TRUE),
                   mean(q2), 
