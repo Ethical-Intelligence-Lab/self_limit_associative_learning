@@ -29,7 +29,8 @@ if (!require(ggpubr)) {install.packages("ggpubr"); require(ggpubr)}
 ##================================================================================================================
 
 ## set directory to data folder
-dir <- setwd("/Users/julian/Dropbox (Personal)/Research/Intuition/single_identity/pilots/e8_memory_association_self/data")
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #set working directory to current directory
+setwd("../data/")
 
 datalist = list()
 #import data using jsonlite [automate this, by defining list of data frames]
@@ -37,6 +38,49 @@ files <- list.files(pattern=('*txt'))
 for (i in 1:length(files)) {
     curData <- fromJSON(files[i], simplifyDataFrame = TRUE)
     datalist[[i]] <- curData$trialStruct
+}
+
+if(TRUE) {
+  filenames_old <- list.files(pattern=('*txt'))
+  
+  # Rename all files in the files list, and rename them by renaming the part before the first "_" with the integer in order
+  # Also, save the part that we renamed as well as the integers we assigned them to in a csv file, so that it's easy to see which file corresponds to which participant
+  for(i in 1:length(files)) {
+    # Print "Renaming [worker_id] to [num]"
+    print(paste0("Renaming ", files[i], " to ", i))
+    file.rename(files[i], paste0(i, substr(files[i], regexpr("_", files[i]), nchar(files[i]))))
+    files[i] <- paste0(i, substr(files[i], regexpr("_", files[i]), nchar(files[i])))
+  }
+  
+  # Also anonymize the 'workerID' field in each file to the integer we assigned it to, and save the file
+  for(i in 1:length(files)) {
+    myJSON <- fromJSON(files[i])
+    
+    # We should save the myJSON$workerID as the integer before the first "_"
+    w_num <- substr(files[i], 1, regexpr("_", files[i])-1)
+    print(paste0(files[i], " -- ", w_num))
+    myJSON$workerID <- w_num
+    
+    # Change workerId's in the trialStructs as well
+    myJSON$trialStruct['workerId'] <- rep(w_num, dim(myJSON$trialStruct['workerId'])[1])
+    
+    # Write the text into files[i]
+    write(toJSON(myJSON, na = "string"), files[i])
+  }
+  
+  worker_ids <- c()
+  nums <- c()
+  for(i in 1:length(filenames_old)) {
+    worker_ids <- c(worker_ids, substr(filenames_old[i], 1, regexpr("_", filenames_old[i]) - 1))
+    nums <- c(nums, substr(files[i], 1, regexpr("_", files[i]) - 1))
+  }
+  
+  filenames <- as.data.frame(cbind(worker_ids, nums))
+  colnames(filenames) <- c('worker_id', 'integer')
+  # Remove NA column
+  filenames <- filenames[filenames$worker_id != 'NA',]
+  filenames$`NA`<- NULL
+  write.csv(filenames, 'filenames_e1.csv')  
 }
 
 data = do.call(rbind, datalist)

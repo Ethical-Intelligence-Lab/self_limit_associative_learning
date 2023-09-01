@@ -84,7 +84,7 @@ acc <- as.numeric(data$acc)
 condNum <- as.numeric(data$condNum)
 acc_use <- acc
 acc_use[is.na(acc_use)] <- 0 #if na, just say it's accuracy of 0
-perf_thresh <- 0.55
+perf_thresh <- 0.60
 trial_thresh <- 0.5
 
 ss_excl_mat <- array(0,dim=c(length(workers),2))
