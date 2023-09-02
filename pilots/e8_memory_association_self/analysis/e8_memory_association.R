@@ -40,6 +40,9 @@ for (i in 1:length(files)) {
     datalist[[i]] <- curData$trialStruct
 }
 
+
+##================ anonymize worker ids ========================================
+
 if(TRUE) {
   filenames_old <- list.files(pattern=('*txt'))
   
@@ -48,8 +51,26 @@ if(TRUE) {
   for(i in 1:length(files)) {
     # Print "Renaming [worker_id] to [num]"
     print(paste0("Renaming ", files[i], " to ", i))
-    file.rename(files[i], paste0(i, substr(files[i], regexpr("_", files[i]), nchar(files[i]))))
-    files[i] <- paste0(i, substr(files[i], regexpr("_", files[i]), nchar(files[i])))
+    
+    #file.rename(files[i], paste0(i, substr(files[i], regexpr("_", files[i]), nchar(files[i]))))
+    #files[i] <- paste0(i, substr(files[i], regexpr("_", files[i]), nchar(files[i])))
+    # If there are files with the same worker_id, rename them to the same integer
+    
+    if(i > 1) {
+      print(paste(substr(filenames_old[i], 1, regexpr("_", filenames_old[i])-1), substr(filenames_old[i-1], 1, regexpr("_", filenames_old[i-1])-1)))
+      if(substr(filenames_old[i], 1, regexpr("_", filenames_old[i])-1) == substr(filenames_old[i-1], 1, regexpr("_", filenames_old[i-1])-1)) {
+        file.rename(files[i], paste0(i-1, substr(files[i], regexpr("_", files[i]), nchar(files[i]))))
+        files[i] <- paste0(i-1, substr(files[i], regexpr("_", files[i]), nchar(files[i])))
+      }
+      else {
+        file.rename(filenames_old[i], paste0(i, substr(filenames_old[i], regexpr("_", filenames_old[i]), nchar(filenames_old[i]))))
+        files[i] <- paste0(i, substr(files[i], regexpr("_", files[i]), nchar(files[i])))
+      }
+    }
+    else {
+      file.rename(filenames_old[i], paste0(i, substr(filenames_old[i], regexpr("_", filenames_old[i]), nchar(filenames_old[i]))))
+      files[i] <- paste0(i, substr(files[i], regexpr("_", files[i]), nchar(files[i])))
+    }
   }
   
   # Also anonymize the 'workerID' field in each file to the integer we assigned it to, and save the file
@@ -80,8 +101,9 @@ if(TRUE) {
   # Remove NA column
   filenames <- filenames[filenames$worker_id != 'NA',]
   filenames$`NA`<- NULL
-  write.csv(filenames, 'filenames_e1.csv')  
+  write.csv(filenames, 'filenames_e6.csv')  
 }
+
 
 data = do.call(rbind, datalist)
 head(data)
