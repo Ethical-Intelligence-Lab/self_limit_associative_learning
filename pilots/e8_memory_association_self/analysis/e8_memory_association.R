@@ -43,7 +43,7 @@ for (i in 1:length(files)) {
 
 ##================ anonymize worker ids ========================================
 
-if(TRUE) {
+if(FALSE) {
   filenames_old <- list.files(pattern=('*txt'))
   
   # Rename all files in the files list, and rename them by renaming the part before the first "_" with the integer in order

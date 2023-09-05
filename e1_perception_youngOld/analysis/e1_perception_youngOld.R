@@ -86,7 +86,7 @@ acc <- as.numeric(data$acc)
 acc_use <- acc
 acc_use[is.na(acc_use)] <- 0 #if na, just say it's accuracy of 0
 perf_thresh <- 0.6
-trial_thresh <- 0.5
+trial_thresh <- 0.4
 
 ss_excl_mat <- array(0,dim=c(length(workers),2))
 colnames(ss_excl_mat) <- c('mean_acc', 'rt_err_prop')
