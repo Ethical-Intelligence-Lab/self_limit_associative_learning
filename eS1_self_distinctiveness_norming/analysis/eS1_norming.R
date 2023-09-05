@@ -65,20 +65,20 @@ similarities <- c(mean(q1, na.rm = TRUE),
                   mean(q5),
                   mean(q6))
 
-experiments <- c('future-you1 vs future-you2',                       #alternatives 
-                 '20-years-younger vs 20-years-older',               #young and old 
-                 'true vs surface',                                  #true and surface 
-                 '20-years-younger vs 20-years-older, powered',      #young and old, powered
-                 '18-year-old vs 60-year-old',                       #young and old, distinct
-                 'healthy vs unhealthy')                             #alternatives, distinct
+experiments <- c('Future You1 v. Future You2',                       #alternatives 
+                 '20 Yrs. Younger v.\n 20 Yrs. Older',               #young and old 
+                 'True v. Surface',                                  #true and surface 
+                 '20 Yrs. Younger v.\n 20 Yrs. Older, Powered',      #young and old, powered
+                 '18 Yr. Old v. 60 Yr. Old',                       #young and old, distinct
+                 'Healthy vs Unhealthy')                             #alternatives, distinct
 
 #performance differences two selves - one                 
-e1_alternatives <- -0.1012608           #alternatives
-e2_20yr_youngOld <- 0.1771778            #young and old
-e3_true_surface <- -0.438542            #true and surface
-e4_20yr_youngOld_powered <- -0.3087165    #young and old, powered
-e5_1860_youngOld <- -0.3848361            #young and old, distinct
-e6_healthy_unhealthy <- -0.8335105        #alternatives, distinct
+e1_alternatives <- -0.308693           #alternatives
+e2_20yr_youngOld <- 0.8350199            #young and old
+e3_true_surface <- -0.5018877            #true and surface
+e4_20yr_youngOld_powered <- -0.4644937    #young and old, powered
+e5_1860_youngOld <- -0.2263931            #young and old, distinct
+e6_healthy_unhealthy <- 0.03867955        #alternatives, distinct
 
 effects <- c(e1_alternatives,
              e2_20yr_youngOld,
@@ -111,21 +111,20 @@ p1 <- ggplot(df,aes(similarities, effects, color=pc)) +
   theme_minimal() +
   scale_color_gradient(low = "#f0650e", high = "#0091ff")+
   scale_alpha(range = c(.25, .6))+
-  xlab("Self Distinctiveness Rating")+ylab("Performance Accuracy for 2 Selves - 1 Self")+
-      ggtitle("Categorization Performance by Self Similarity") +
+  xlab("Self Distinctiveness Rating")+ylab("Performance: 2 Selves - 1 Self")+
+      ggtitle("Performance vs. Self Similarity") +
   theme(axis.title.x = element_text(color='black', margin=margin(20,0,0,0)), 
         axis.title.y = element_text(margin=margin(0,0,0,0)),
         plot.title = element_text(size=30, face='bold'),
         text = element_text(size=30))+
-        theme(legend.position = "none")
-  coord_cartesian(ylim=c(-0.5, 0.5)) 
+        theme(legend.position = "none") + coord_cartesian(ylim=c(-1, 1)) 
 
 ### geom_label_repel
-p1 + 
+p1 <- p1 + 
   geom_label_repel(aes(label = experiments),
-                   size= 5.0,
-                   box.padding   = 1.8, 
-                   point.padding = 1.5,
+                   size= 6.0,
+                   box.padding   = 2.0, 
+                   point.padding = 1.0,
                    segment.color = 'grey50') 
 
 ####======================================= end =========================================================

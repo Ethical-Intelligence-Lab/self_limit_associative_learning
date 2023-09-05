@@ -385,7 +385,7 @@ for(i in 1:length(p_mat)) {
     star_mat[i] = 'ns'
   }
   else if( (p_mat[i] < 0.10) & (p_mat[i] > 0.05) ) { 
-    star_mat[i] = '\u2020'
+    star_mat[i] = 'ns'
   }
   else if( (p_mat[i] < 0.05) & (p_mat[i] > 0.01) ) { 
     star_mat[i] = '*'

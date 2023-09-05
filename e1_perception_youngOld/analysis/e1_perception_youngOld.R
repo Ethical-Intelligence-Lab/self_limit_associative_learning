@@ -392,7 +392,7 @@ for(i in 1:length(p_mat)) {
     star_mat[i] = 'ns'
   }
   else if( (p_mat[i] < 0.10) & (p_mat[i] > 0.05) ) { 
-    star_mat[i] = "†"
+    star_mat[i] = "ns"
   }
   else if( (p_mat[i] < 0.05) & (p_mat[i] > 0.01) ) { 
     star_mat[i] = '*'
@@ -570,12 +570,12 @@ p1.115<-p1.15+scale_fill_discrete(name = "", labels = c ("Original", "Copy", "St
   xlab ("") + ylab ("") +
   geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge", size=1.5)+
   geom_signif(data=perf_mat_plot,
-              aes(xmin=1, xmax=3, annotations=star_mat[4], y_position=5.5),
+              aes(xmin=1, xmax=3, annotations=star_mat[4], y_position=5.6),
               textsize = 12, vjust = -0.1,
               manual=TRUE, size=1.5) +
   geom_signif(data=perf_mat_plot,
-              aes(xmin=2, xmax=3, annotations=star_mat[5], y_position=4.7),
-              textsize = 12, vjust = 0.3,
+              aes(xmin=2, xmax=3, annotations=star_mat[5], y_position=4.65),
+              textsize = 12, vjust = -0.1,
               manual=TRUE, size=1.5) +
   #ggtitle ("Total Performance:\n One Self v. Two Selves") +
   theme(plot.title = element_text(hjust = 0.5)) + 

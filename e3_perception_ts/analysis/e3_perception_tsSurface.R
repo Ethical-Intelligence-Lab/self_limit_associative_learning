@@ -383,7 +383,7 @@ for(i in 1:length(p_mat)) {
     star_mat[i] = 'ns'
   }
   else if( (p_mat[i] < 0.10) & (p_mat[i] > 0.05) ) { 
-    star_mat[i] = '\u2020'
+    star_mat[i] = 'ns'
   }
   else if( (p_mat[i] < 0.05) & (p_mat[i] > 0.01) ) { 
     star_mat[i] = '*'
@@ -485,7 +485,7 @@ p1.111<-p1.11+scale_fill_discrete(name = "", labels = c ("True\nYou", "Stranger\
   theme(legend.text = element_text(size = "16", face = "plain")) +
   geom_errorbar(aes(ymax=mean+sem, ymin=mean-sem), position="dodge", size=1.5)+
   geom_signif(data=d.one,
-              aes(xmin=1, xmax=2, annotations=star_mat[1], y_position=2.1),
+              aes(xmin=1, xmax=2, annotations=star_mat[1], y_position=2.35),
               textsize = 12, vjust = 0.3,
               manual=TRUE, size=1.5) +
   #ggtitle ("Self #1") +
