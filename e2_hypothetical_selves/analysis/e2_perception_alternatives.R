@@ -22,6 +22,7 @@ if (!require(RColorBrewer)) {install.packages("RColorBrewer"); require(RColorBre
 if (!require(Hmisc)) {install.packages("Hmisc"); require(Hmisc)}
 if (!require(ggpubr)) {install.packages("ggpubr"); require(ggpubr)}
 if (!require(ggsignif)) {install.packages("ggsignif"); require(ggsignif)}
+if (!require(BayesFactor)) {install.packages("BayesFactor"); require(BayesFactor)}
 
 ##================================================================================================================
                                               ##IMPORT DATA##
@@ -293,6 +294,11 @@ tes(as.numeric(att_1_o[1]), n_o_1, n_o_2) #cohen's d
 tes(as.numeric(att_2_o[1]), n_o_1, n_o_3) #cohen's d
 tes(as.numeric(att_3_o[1]), n_o_2, n_o_3) #cohen's d
 
+result <- 1 / ttestBF(x = d_one$d[d_one$agentCond==1],
+                      y = d_one$d[d_one$agentCond==2], paired = TRUE)
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
 #one self #2
 d_oneAlt <- subset(d.mat, d.mat$mainCond==2)
 
@@ -315,6 +321,11 @@ att_3_alt <- t.test(d_oneAlt$d[d_oneAlt$agentCond==2 | d_oneAlt$agentCond==3] ~ 
 tes(as.numeric(att_1_alt[1]), n_o_1, n_o_2) #cohen's d
 tes(as.numeric(att_2_alt[1]), n_o_1, n_o_3) #cohen's d
 tes(as.numeric(att_3_alt[1]), n_o_2, n_o_3) #cohen's d
+
+result <- 1 / ttestBF(x = d_oneAlt$d[d_oneAlt$agentCond==1],
+                      y = d_oneAlt$d[d_oneAlt$agentCond==2], paired = TRUE)
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
 
 #two selves
 d_two <- subset(d.mat, d.mat$mainCond==3)
@@ -339,6 +350,11 @@ tes(as.numeric(att_1_b[1]), n_o_1, n_o_2) #cohen's d
 tes(as.numeric(att_2_b[1]), n_o_1, n_o_3) #cohen's d
 tes(as.numeric(att_3_b[1]), n_o_2, n_o_3) #cohen's d
 
+result <- 1 / ttestBF(x = d_two$d[d_two$agentCond==1],
+                      y = d_two$d[d_two$agentCond==2], paired = TRUE)
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
 #------- TOTAL PERFORMANCE--------#
 
 mean(perf.mat$total_perf[perf.mat$mainCond == 1])
@@ -356,6 +372,15 @@ perf_2 <- t.test(perf.mat$total_perf[perf.mat$mainCond == 2 | perf.mat$mainCond 
 tes(as.numeric(perf_1[1]), length(workers), length(workers)) #cohen's d
 tes(as.numeric(perf_2[1]), length(workers), length(workers)) #cohen's d
 
+result <- 1 / ttestBF(x = perf.mat$total_perf[perf.mat$mainCond == 1],
+                      y = perf.mat$total_perf[perf.mat$mainCond == 3])
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
+result <- 1 / ttestBF(x = perf.mat$total_perf[perf.mat$mainCond == 2],
+                      y = perf.mat$total_perf[perf.mat$mainCond == 3])
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
 #***mean performance, for norming plot
 #*
 ((mean(perf.mat$total_perf[perf.mat$mainCond == 3]) - mean(perf.mat$total_perf[perf.mat$mainCond == 1])) + (mean(perf.mat$total_perf[perf.mat$mainCond == 3]) - mean(perf.mat$total_perf[perf.mat$mainCond == 2])))/2
@@ -375,6 +400,30 @@ perfd_2 <- t.test(perf.mat$perf_diff[perf.mat$mainCond == 2 | perf.mat$mainCond 
 
 tes(as.numeric(perfd_1[1]), length(workers), length(workers)) #cohen's d
 tes(as.numeric(perfd_2[1]), length(workers), length(workers)) #cohen's d
+
+# Bayes
+result <- 1 / ttestBF(x = perf.mat$perf_diff[perf.mat$mainCond == 1],
+                      y = perf.mat$perf_diff[perf.mat$mainCond == 3])
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
+result <- 1 / ttestBF(x = perf.mat$perf_diff[perf.mat$mainCond == 2],
+                      y = perf.mat$perf_diff[perf.mat$mainCond == 3])
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
+# Bayes
+result <- 1 / ttestBF(x = perf.mat$perf_diff[perf.mat$mainCond == 1],
+                      y = perf.mat$perf_diff[perf.mat$mainCond == 3])
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
+result <- 1 / ttestBF(x = perf.mat$perf_diff[perf.mat$mainCond == 2],
+                      y = perf.mat$perf_diff[perf.mat$mainCond == 3])
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
+
 
 p_mat <- c(att_1_o[3], att_1_alt[3], att_1_b[3], perf_1[3], perf_2[3])
 for(i in 1:length(p_mat)) {
@@ -412,6 +461,11 @@ conf_2 <- t.test(conf.mat$n_self[conf.mat$agentCond==2], conf.mat$n_stranger[con
 tes(as.numeric(conf_2[1]), dim(conf.mat)[1],  dim(conf.mat)[1]) #cohen's d
 
 conf_diff <- t.test(conf.mat$diff[conf.mat$agentCond==1], conf.mat$diff[conf.mat$agentCond==2], var.equal=TRUE, paired=TRUE); conf_diff
+
+result <- 1 / ttestBF(x = conf.mat$diff[conf.mat$agentCond==1],
+                      y = conf.mat$diff[conf.mat$agentCond==2], paired = TRUE)
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
 
 #================================================================================================================
                                          ##PREPARE FOR PLOTTING##

@@ -272,6 +272,11 @@ tes(as.numeric(att_1_b[1]), n_o_1, n_o_2) #cohen's d
 tes(as.numeric(att_2_b[1]), n_o_1, n_o_3) #cohen's d
 tes(as.numeric(att_3_b[1]), n_o_2, n_o_3) #cohen's d
 
+result <- 1 / ttestBF(x = d_two$d[d_two$agentCond==1],
+                      y = d_two$d[d_two$agentCond==2], paired = TRUE)
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
 p_mat <- c(att_1_o[3], att_2_o[3], att_3_o[3], att_1_b[3], att_2_b[3], att_3_b[3])
 for(i in 1:length(p_mat)) {
   if(p_mat[i] > 0.05) {
