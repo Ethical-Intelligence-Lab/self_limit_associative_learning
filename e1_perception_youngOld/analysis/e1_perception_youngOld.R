@@ -26,8 +26,10 @@ if (!require(gridExtra)) {install.packages("gridExtra"); require(gridExtra)}
 if (!require(pwr)) {install.packages("pwr"); require(pwr)}
 if (!require(BayesFactor)) {install.packages("BayesFactor"); require(BayesFactor)}
 
-d <- 1.03 # Anticipated effect size
+d <- 1.06 # Anticipated effect size
 pwr.t.test(d=d, power=0.9)
+
+pwr.t.test(n=100, d=1.06)
 
 ##================================================================================================================
                                               ##IMPORT DATA##

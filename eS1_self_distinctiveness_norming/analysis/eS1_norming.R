@@ -91,6 +91,11 @@ effects <- c(e1_alternatives,
 
 cor.test(similarities, effects)
 
+# Bayes test for correlation
+corr <- 1 / correlationBF(similarities, effects)
+result_bf <- exp(corr@bayesFactor$bf)
+result_bf
+
 plot(similarities, effects)
 abline(effects ~ similarities)
 
