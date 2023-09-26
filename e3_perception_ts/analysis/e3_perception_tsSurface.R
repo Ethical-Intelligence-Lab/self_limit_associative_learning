@@ -130,7 +130,7 @@ worker <- as.factor(data$workerId)
 workers <- as.factor(unique(worker))
 n_aft_excl <- length(workers); n_aft_excl
 n_excl <- n_bef_excl - n_aft_excl; n_excl
-age <- as.numeric(data$age); mean(age,na.rm = TRUE) 
+age <- as.numeric(data$age); mean(age,na.rm = TRUE); sd(age,na.rm = TRUE) 
 gender <- as.factor(data$sex); table(gender)[1]/sum(table(gender)) 
 
 ##================================================================================================================
@@ -274,6 +274,9 @@ star_mat <- rep(9, times = 5)
 #one self 
 d_one <- subset(d.mat, d.mat$mainCond==1)
 
+# Sensitivity Power Analysis:
+pwr.t.test(n=length(d_one$d[d_one$agentCond==1]), power = 0.8, sig.level = 0.05, type="paired")
+
 mean(d_one$d[d_one$agentCond==1]) #future-you1
 sd(d_one$d[d_one$agentCond==1])
 n_o_1 = length(d_one$d[d_one$agentCond==1]); n_o_1
@@ -302,6 +305,9 @@ result_bf
 #one self #2
 d_oneAlt <- subset(d.mat, d.mat$mainCond==2)
 
+# Sensitivity Power Analysis:
+pwr.t.test(n=length(d_oneAlt$d[d_oneAlt$agentCond==1]), power = 0.8, sig.level = 0.05, type="paired")
+
 mean(d_oneAlt$d[d_oneAlt$agentCond==1]) #future-you2
 sd(d_oneAlt$d[d_oneAlt$agentCond==1])
 n_o_1 = length(d_oneAlt$d[d_oneAlt$agentCond==1]); n_o_1
@@ -329,6 +335,9 @@ result_bf
 
 #two selves
 d_two <- subset(d.mat, d.mat$mainCond==3)
+
+# Sensitivity Power Analysis:
+pwr.t.test(n=length(d_two$d[d_two$agentCond==1]), power = 0.8, sig.level = 0.05, type="paired")
 
 mean(d_two$d[d_two$agentCond==1]) #future-you1
 sd(d_two$d[d_two$agentCond==1])
@@ -432,23 +441,55 @@ for(i in 1:length(p_mat)) {
   }
 }
 
-################### CONFUSIONS
+################### CONFUSIONS ###################
 #For cases in which (i) the shape represented the self, (ii) the label was a mismatch,
 #and (iii) people were instructed to imagine 2 selves, did people do worse when the
 #label represented another self vs. a stranger?
 
-mean(conf.mat$diff[conf.mat$agentCond == 1])
-sd(conf.mat$diff[conf.mat$agentCond == 1])
-mean(conf.mat$diff[conf.mat$agentCond == 2])
-sd(conf.mat$diff[conf.mat$agentCond == 2])
+# Self 1
+mean(conf.mat$n_self[conf.mat$agentCond==1])
+sd(conf.mat$n_self[conf.mat$agentCond==1])
 
+# Self 2
+mean(conf.mat$n_self[conf.mat$agentCond==2])
+sd(conf.mat$n_self[conf.mat$agentCond==2])
+
+# Stranger
+mean(conf.mat$n_stranger[conf.mat$agentCond==1])
+sd(conf.mat$n_stranger[conf.mat$agentCond==1])
+
+# Self 1 v. Stranger
 conf_1 <- t.test(conf.mat$n_self[conf.mat$agentCond==1], conf.mat$n_stranger[conf.mat$agentCond==1], var.equal=TRUE, paired=TRUE); conf_1
 tes(as.numeric(conf_1[1]), dim(conf.mat)[1],  dim(conf.mat)[1]) #cohen's d
 
+# Bayes Factor Self 1 v. Stranger
+result <- 1 / ttestBF(x = conf.mat$n_self[conf.mat$agentCond==1],
+                      y = conf.mat$n_stranger[conf.mat$agentCond==1], paired = TRUE)
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
+# Self 2 v. Stranger
 conf_2 <- t.test(conf.mat$n_self[conf.mat$agentCond==2], conf.mat$n_stranger[conf.mat$agentCond==2], var.equal=TRUE, paired=TRUE); conf_2
 tes(as.numeric(conf_2[1]), dim(conf.mat)[1],  dim(conf.mat)[1]) #cohen's d
 
+# Bayes Factor Self 2 v. Stranger
+result <- 1 / ttestBF(x = conf.mat$n_self[conf.mat$agentCond==2],
+                      y = conf.mat$n_stranger[conf.mat$agentCond==2], paired = TRUE)
+result_bf <- exp(result@bayesFactor$bf)
+result_bf
+
+
+# Difference of differences
+# Self 1 v. Self 2
+mean(conf.mat$diff[conf.mat$agentCond == 1])
+sd(conf.mat$diff[conf.mat$agentCond == 1])
+
+mean(conf.mat$diff[conf.mat$agentCond == 2])
+sd(conf.mat$diff[conf.mat$agentCond == 2])
+
 conf_diff <- t.test(conf.mat$diff[conf.mat$agentCond==1], conf.mat$diff[conf.mat$agentCond==2], var.equal=TRUE, paired=TRUE); conf_diff
+
+tes(as.numeric(conf_diff[1]), dim(conf.mat)[1],  dim(conf.mat)[1]) #cohen's d
 
 result <- 1 / ttestBF(x = conf.mat$diff[conf.mat$agentCond==1],
                       y = conf.mat$diff[conf.mat$agentCond==2], paired = TRUE)

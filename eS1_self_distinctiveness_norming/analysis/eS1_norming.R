@@ -46,7 +46,7 @@ data <- subset(data, (data$attention==0) &
 dim(data)
 
 age <- data$age[data$age %in% 1:100] #ignore folks who said they're 0 yrs old
-mean(age,na.rm = TRUE) 
+mean(age,na.rm = TRUE); sd(age, na.rm = TRUE) 
 gender <- as.factor(data$sex); table(gender)[2]/sum(table(gender)) 
 
 ##======================== prep data for analysis ================================================================================
